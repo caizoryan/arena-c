@@ -178,9 +178,6 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-// TODO: 
-// 1.
-
 void mainloop(){
     int should_exit = false;
     int c = 0;
