@@ -20,4 +20,9 @@ I wanna implement something like the [are.na-cli](https://github.com/ivangreene/
 
 # Why do I keep coming back to the Are.na API
 
+# Links
+1. Checkout the [log](./log.md)
+
+
+
 
