@@ -111,7 +111,6 @@ char *slugs[] = {
     "list-websites-lwvz0acnwli",
     "list-are-na-api-possibilities",
     "list-are-na-gists",
-    "list-computers-important-historical-videos"
 };
 
 struct ChannelRequestArr {
@@ -123,7 +122,7 @@ int main(int argc, char **argv) {
 	/* init a multi stack */
 	CURLM *multi_handle = curl_multi_init();
 	for(size_t i = 0; i < sizeof(slugs)/sizeof(slugs[0]); i++){
-	printf("line %d\n", i);
+	printf("line %ld\n", i);
 	requests.buff[i] = construct_channel_request(slugs[i]);
 	curl_multi_add_handle(multi_handle, requests.buff[i]->curl);
 	++requests.len;
@@ -177,9 +176,6 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-
-// TODO: 
-// 1.
 
 void mainloop(){
     int should_exit = false;

@@ -1,3 +1,12 @@
+# <2025-05-23 Fri> Today:
+
+### SQLITE
+Added some sqlite stuff. Can add to and read a sqlite db. Now will have funky fun :)
+
+### Next up
+Recieve a channel, process it and add its contents to the sqlite db.
+When asked respond with the saved stuf...
+
 # <2025-05-23 Fri> Up until now:
  
 ### Technical
