@@ -1,14 +1,14 @@
 # Purpose of this repository
 
-#### Learning C
+### Learning C
 This is my absolute first experience with C. And this seemed like a good exercise to learn C with. There is managing a bunch of strings, getting network requests, parsing and storing the data.
 
-#### Learning Emacs (apparently) 
+### Learning Emacs (apparently) 
 If learning C wasn't destabilizing enough, I'm also learning to use emacs. So far at the point of writing this it has been 2 days, I got evil-mode working so its been a pretty smooth transition. (this has nothing to do with this repo I guess...
 
 ;; Maybe by that time I'm finished working with this I'll want to do this in lisp :)
 
-#### Making myself a "robust" offline are.na proxy.
+### Making myself a "robust" offline are.na proxy.
 I have a sort of working node implementation of this. But I think it will be more fun* to do this in c.
 
 *painful
