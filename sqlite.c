@@ -11,6 +11,8 @@ sqlite3 *setup_db();
 void addTodo(sqlite3 *db, char *todo);
 void listTodo(sqlite3 *db);
 
+void newfn();
+
 //	__       
 //	/ _|_ __  
 //	| |_| '_  

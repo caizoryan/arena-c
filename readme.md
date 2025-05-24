@@ -22,7 +22,3 @@ I wanna implement something like the [are.na-cli](https://github.com/ivangreene/
 
 # Links
 1. Checkout the [log](./log.md)
-
-
-
-
