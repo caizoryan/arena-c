@@ -14,11 +14,37 @@ I have a sort of working node implementation of this. But I think it will be mor
 *painful
 
 ### Learning CMD line gymnastics
-I wanna implement something like the [are.na-cli](https://github.com/ivangreene/arena-cli/blob/master/index.js), and then maybe play around with some sort of org more integration or smth will be fun. I think just playing with a terminal vibe for are.na will be fun.
+I wanna implement something like the [are.na-cli](https://github.com/ivangreene/arena-cli/blob/master/index.js), and then maybe play around with some sort of org mode integration or smth will be fun. I think just playing with a terminal vibe for are.na will be fun.
 
-# So what is this (planned features)
+# TODO
 
-# Why do I keep coming back to the Are.na API
+* all the while making sure there's no leaks and corrupted memory :)
+
+### Basics
+- [x] Get single channel
+- [x] Parse Channel
+- [x] Get multiple channels
+- [ ] Store channel in sqlite DB
+- [ ] Store block in DB (image, attachment, source, user, etc)
+- [ ] Get users channels
+- [ ] API Calls limiting
+- [ ] Handle errors (maxed out requests, failed response, null values, etc)
+- [ ] Manage updating blocks/channels
+
+### Downloading
+- [ ] Download images, attachments, etc
+- [ ] Resolve updates
+- [ ] Folder structure, etc
+- [ ] Symlinks (configurable)
+
+### CLI
+- [ ] Query Data in db
+- [ ] Create an interface for querying
+
+### Server (perhaps another module)
+- [ ] Resolve URL request and respond
+- [ ] Resolve offline response or proxy req are.na
+
 
 # Links
 1. Checkout the [log](./log.md)

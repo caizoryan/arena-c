@@ -3,21 +3,22 @@
 #include <sqlite3.h>
 
 sqlite3 *setup_db();
+
 //   ____  _   _ _____    _    ____  _____ ____  ____  
 //  / / / | | | | ____|  / \  |  _ \| ____|  _ \/ ___| 
 // / / /  | |_| |  _|   / _ \ | | | |  _| | |_) \___ \ 
 /// / /   |  _  | |___ / ___ \| |_| | |___|  _ < ___) |
 //_/_/    |_| |_|_____/_/   \_\____/|_____|_| \_\____/ 
+
 void addTodo(sqlite3 *db, char *todo);
 void listTodo(sqlite3 *db);
 
-void newfn();
-
-//	__       
-//	/ _|_ __  
-//	| |_| '_  
-//	|  _| | | |
-//	|_| |_| |_|
+    // / ____  _____ _   _ _   _  ____ _____ ___ ___  _   _   
+   // / |  ___| | | | \ | |/ ___|_   _|_ _/ _ \| \ | / ___| 
+  // /  | |_  | | | |  \| | |     | |  | | | | |  \| \___ \ 
+ // /   |  _| | |_| | |\  | |___  | |  | | |_| | |\  |___) |
+//_/    |_|    \___/|_| \_|\____| |_| |___\___/|_| \_|____/ 
+                                                             
 
 int main(int argc, char **argv){
   sqlite3 *db = setup_db();
@@ -30,6 +31,7 @@ int main(int argc, char **argv){
   sqlite3_close(db);
   return 0;
 }
+
 void addTodo(sqlite3 *db, char *todo) {
   char sql[256];
   sprintf(sql, "insert into TODOS(Id, Title, Completed) values(NULL, '%s', 0);", todo);
@@ -66,6 +68,7 @@ void listTodo(sqlite3 *db) {
   }
 
 }
+
 sqlite3 *setup_db(){
   sqlite3* db;
   int rc = sqlite3_open("todo.db", &db);

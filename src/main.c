@@ -122,30 +122,30 @@ int main(int argc, char **argv) {
 	/* init a multi stack */
 	CURLM *multi_handle = curl_multi_init();
 	for(size_t i = 0; i < sizeof(slugs)/sizeof(slugs[0]); i++){
-	printf("line %ld\n", i);
-	requests.buff[i] = construct_channel_request(slugs[i]);
-	curl_multi_add_handle(multi_handle, requests.buff[i]->curl);
-	++requests.len;
+		printf("line %ld\n", i);
+		requests.buff[i] = construct_channel_request(slugs[i]);
+		curl_multi_add_handle(multi_handle, requests.buff[i]->curl);
+		++requests.len;
 	}
 
 	int still_running = 1;
 	while(still_running) {
-	CURLMsg *msg;
-	int queued;
-	CURLMcode mc = curl_multi_perform(multi_handle, &still_running);
+		CURLMsg *msg;
+		int queued;
+		CURLMcode mc = curl_multi_perform(multi_handle, &still_running);
 
-	if(still_running)
-			/* wait for activity, timeout or "nothing" */
-			mc = curl_multi_poll(multi_handle, NULL, 0, 1000, NULL);
+		if(still_running)
+				/* wait for activity, timeout or "nothing" */
+				mc = curl_multi_poll(multi_handle, NULL, 0, 1000, NULL);
 
-	if(mc) break;
+		if(mc) break;
 
-	do {
-			msg = curl_multi_info_read(multi_handle, &queued);
-			if(msg && msg->msg == CURLMSG_DONE) {
-			printf("Transfer completed\n");
+		do {
+				msg = curl_multi_info_read(multi_handle, &queued);
+				if(msg && msg->msg == CURLMSG_DONE) {
+				printf("Transfer completed\n");
 			}
-	} while(msg);
+		} while(msg);
 	}
 
 	ChannelParsed channels[64];
@@ -154,13 +154,13 @@ int main(int argc, char **argv) {
 		ChannelParsed channel = parse_channel(requests.buff[i]); 
 		channels[i] = channel;
 		++channel_len;
-    }
+	}
 
     /* init(); */
     /* mainloop(); */
     /* endgame(); */
 
-    for(int i = 0; i < requests.len; i++){
+	for(int i = 0; i < requests.len; i++){
 		char *len = cJSON_Print(cJSON_GetObjectItem(channels[i].data, "length"));
 		printf("%d. slug: %s\t", i, channels[i].slug);
 		printf("length, %s\n", len);
@@ -170,11 +170,10 @@ int main(int argc, char **argv) {
 		clean_channel_request(requests.buff[i]);
 		cJSON_Delete(channels[i].data);
 		free(channels[i].slug);
-    }
+	}
+	curl_multi_cleanup(multi_handle);
 
-    curl_multi_cleanup(multi_handle);
-
-    return 0;
+	return 0;
 }
 
 void mainloop(){
@@ -196,52 +195,52 @@ void mainloop(){
     refresh();
 
     while(!should_exit){
-	int c = wgetch(main_window);
-	wclear(main_window);
+			int c = wgetch(main_window);
+			wclear(main_window);
 
-	switch (c) {
-	    case 'q':
-		    should_exit = true;
-			break;
+			switch (c) {
+					case 'q':
+						should_exit = true;
+					break;
 
-	    case KEY_DOWN:
-		    offset-=4;
-		    break;
+					case KEY_DOWN:
+						offset-=4;
+						break;
 
-	    case KEY_UP:
-		    offset+=4;
-		    break;
+					case KEY_UP:
+						offset+=4;
+						break;
 
-	    default:
-		    mvprintw(WINDOW_POSY, WINDOW_POSX+2, "PRESSED: %d", c);
-		    break;
-	}
+					default:
+						mvprintw(WINDOW_POSY, WINDOW_POSX+2, "PRESSED: %d", c);
+						break;
+			}
 
-	box(border_window,0,0);
-	wrefresh(border_window);
+			box(border_window,0,0);
+			wrefresh(border_window);
 
-	int pos = 0;
-	int highlight = 0;
-	char buff[150] = {0};
+			int pos = 0;
+			int highlight = 0;
+			char buff[150] = {0};
 
-	for(int i = 0; i < itemlen; i++){
-		pos = (i*4) + offset;
-		if (pos > 45) continue;
+			for(int i = 0; i < itemlen; i++){
+				pos = (i*4) + offset;
+				if (pos > 45) continue;
 
-		int linelen = firstline(items[i].content);
-		if (linelen > 140) linelen = 140;
-		memcpy(buff, items[i].content, linelen);
-		buff[140] = 0;
+				int linelen = firstline(items[i].content);
+				if (linelen > 140) linelen = 140;
+				memcpy(buff, items[i].content, linelen);
+				buff[140] = 0;
 
-		if (pos > 8 && pos < 13) { wattron(main_window, COLOR_PAIR(2)); }
-		mvwprintw(main_window, pos, 0, "%s", buff);
-		if (pos > 8 && pos < 13) { wattroff(main_window, COLOR_PAIR(2)); }
+				if (pos > 8 && pos < 13) { wattron(main_window, COLOR_PAIR(2)); }
+				mvwprintw(main_window, pos, 0, "%s", buff);
+				if (pos > 8 && pos < 13) { wattroff(main_window, COLOR_PAIR(2)); }
 
-		highlight = 0;
-	}
+				highlight = 0;
+			}
 
-	wrefresh(main_window);
-	//refresh();
+			wrefresh(main_window);
+			//refresh();
     }
 }
 
