@@ -16,8 +16,14 @@ Channel parse_channel(ChannelRequest *request){
     channel.updated_at = cJSON_Print(cJSON_GetObjectItem(data, "updated_at"));
     channel.created_at = cJSON_Print(cJSON_GetObjectItem(data, "created_at"));
 
-    channel.length = atoi(cJSON_Print(cJSON_GetObjectItem(data, "length")));
-    channel.id = atoi(cJSON_Print(cJSON_GetObjectItem(data, "id")));
+		char *len = cJSON_Print(cJSON_GetObjectItem(data, "length"));
+		char *id = cJSON_Print(cJSON_GetObjectItem(data, "id"));
+
+    channel.length = atoi(len);
+    channel.id = atoi(id);
+
+		free(len);
+		free(id);
 
 		cJSON_Delete(data);
     return channel;
