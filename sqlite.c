@@ -4,67 +4,64 @@
 
 sqlite3 *setup_db();
 
-//   ____  _   _ _____    _    ____  _____ ____  ____  
-//  / / / | | | | ____|  / \  |  _ \| ____|  _ \/ ___| 
-// / / /  | |_| |  _|   / _ \ | | | |  _| | |_) \___ \ 
-/// / /   |  _  | |___ / ___ \| |_| | |___|  _ < ___) |
-//_/_/    |_| |_|_____/_/   \_\____/|_____|_| \_\____/ 
+void listChannel(sqlite3 *db);
+typedef struct {
+	int id;
+	char slug[512];
+	char title[512];
+} Channel;
 
-void addTodo(sqlite3 *db, char *todo);
-void listTodo(sqlite3 *db);
-
-    // / ____  _____ _   _ _   _  ____ _____ ___ ___  _   _   
-   // / |  ___| | | | \ | |/ ___|_   _|_ _/ _ \| \ | / ___| 
-  // /  | |_  | | | |  \| | |     | |  | | | | |  \| \___ \ 
- // /   |  _| | |_| | |\  | |___  | |  | | |_| | |\  |___) |
-//_/    |_|    \___/|_| \_|\____| |_| |___\___/|_| \_|____/ 
-                                                             
+void addChannel(sqlite3 *db, Channel channel);
 
 int main(int argc, char **argv){
   sqlite3 *db = setup_db();
   printf("sqlite open ready to use...\n");
 
-  if (argc > 1 ){addTodo(db, argv[1]);}
-
-  listTodo(db);
+  /* Channel testc = {28, "hello", "world"}; */
+	/* addChannel(db, testc); */
+  listChannel(db);
 
   sqlite3_close(db);
   return 0;
 }
 
-void addTodo(sqlite3 *db, char *todo) {
-  char sql[256];
-  sprintf(sql, "insert into TODOS(Id, Title, Completed) values(NULL, '%s', 0);", todo);
-  printf("%s\n",sql);
-  char *err = 0;
 
+void addChannel(sqlite3 *db, Channel channel) {
+  char sql[2048];
+  sprintf(sql,
+			"INSERT OR REPLACE INTO channel "
+			"(id, title, slug) "
+      "VALUES "
+			"(%d, '%s', '%s')",
+			channel.id, channel.title, channel.slug);
+
+	printf("%s", sql);
+
+  char *err = 0;
   int rc = sqlite3_exec(db, sql, 0, 0, &err);
 
   if (rc != SQLITE_OK){fprintf(stderr, "ERROR");}
   else {printf("succesfully done\n");}
 
   free(err);
-}
-
-void listTodo(sqlite3 *db) {
+} 
+void listChannel(sqlite3 *db) {
   sqlite3_stmt *stmt; 
-  const char *sql = "select * from TODOS;";
+  const char *sql = "select * from channel;";
 
   int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
   if (rc != SQLITE_OK){
-	fprintf(stderr, "ALL HELL HAS BROKEN LOOSE");
+		fprintf(stderr, "ALL HELL HAS BROKEN LOOSE");
   }
 
-  printf("%-5s%-25s%s\n", "id", "title", "status");
+  printf("%-5s%-25s%s\n", "id", "title", "slug");
   printf("-----------------------------------------------------\n");
   while((rc = sqlite3_step(stmt)) == SQLITE_ROW){
-	int id = sqlite3_column_int(stmt, 0);
-	char *title = (char *)sqlite3_column_text(stmt, 1);
-	int completed = sqlite3_column_int(stmt, 2);
-	char *status = "done";
-	if(!completed) status = "not";
-	printf("%-5d%-25s%s\n", id, title, status);
-	printf("-----------------------------------------------------\n");
+		int id = sqlite3_column_int(stmt, 0);
+		char *title = (char *)sqlite3_column_text(stmt, 1);
+		char *slug= (char *)sqlite3_column_text(stmt, 2);
+		printf("%-5d%-25s%s\n", id, title, slug);
+		printf("-----------------------------------------------------\n");
   }
 
 }
@@ -73,8 +70,8 @@ sqlite3 *setup_db(){
   sqlite3* db;
   int rc = sqlite3_open("todo.db", &db);
   if (rc != SQLITE_OK){
-	fprintf(stderr, "couldn't open\n");
-	return NULL;
+		fprintf(stderr, "couldn't open\n");
+		return NULL;
   }
 
   return db;
