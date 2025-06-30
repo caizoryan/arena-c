@@ -14,14 +14,20 @@ typedef struct {
 /* size_t cb(char *data, size_t size, size_t nmemb, struct memory *mem); */
 void clean_channel_request(ChannelRequest *req);
 typedef struct {
-  /* char id[64]; */
-  char *slug;
-  /* char title[512]; */
+	int id;
+	int length;
+	int user_id;
 
-  cJSON *data;
-} ChannelParsed;
+	char *status;
 
-ChannelParsed parse_channel(ChannelRequest *request);
+	char *slug;
+	char *title;
+	char *updated_at;
+	char *created_at;
+
+} Channel;
+
+Channel parse_channel(ChannelRequest *request);
 ChannelRequest *construct_channel_request(char *slug);
 
 #endif

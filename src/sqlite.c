@@ -1,50 +1,26 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <sqlite3.h>
-
-sqlite3 *setup_db();
-
-void listChannel(sqlite3 *db);
-typedef struct {
-	int id;
-	char slug[512];
-	char title[512];
-} Channel;
-
-void addChannel(sqlite3 *db, Channel channel);
-
-int main(int argc, char **argv){
-  sqlite3 *db = setup_db();
-  printf("sqlite open ready to use...\n");
-
-  /* Channel testc = {28, "hello", "world"}; */
-	/* addChannel(db, testc); */
-  listChannel(db);
-
-  sqlite3_close(db);
-  return 0;
-}
-
+#include "sqlite.h"
 
 void addChannel(sqlite3 *db, Channel channel) {
   char sql[2048];
   sprintf(sql,
 			"INSERT OR REPLACE INTO channel "
-			"(id, title, slug) "
+			"(id, title, slug, length, user_id, status, created_at, updated_at) "
       "VALUES "
-			"(%d, '%s', '%s')",
-			channel.id, channel.title, channel.slug);
-
-	printf("%s", sql);
+			"(%d, '%s', '%s', %d, %d, '%s', '%s', '%s')",
+					channel.id, channel.title, channel.slug,
+					channel.length, channel.user_id, channel.status,
+					channel.created_at, channel.updated_at
+					);
 
   char *err = 0;
   int rc = sqlite3_exec(db, sql, 0, 0, &err);
 
-  if (rc != SQLITE_OK){fprintf(stderr, "ERROR");}
+  if (rc != SQLITE_OK){fprintf(stderr, "ERROR %s", err);}
   else {printf("succesfully done\n");}
 
   free(err);
 } 
+
 void listChannel(sqlite3 *db) {
   sqlite3_stmt *stmt; 
   const char *sql = "select * from channel;";
@@ -66,7 +42,7 @@ void listChannel(sqlite3 *db) {
 
 }
 
-sqlite3 *setup_db(){
+sqlite3 *setup_db() {
   sqlite3* db;
   int rc = sqlite3_open("todo.db", &db);
   if (rc != SQLITE_OK){

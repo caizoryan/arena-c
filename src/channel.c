@@ -4,12 +4,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-ChannelParsed parse_channel(ChannelRequest *request){
-    ChannelParsed channel;
+Channel parse_channel(ChannelRequest *request){
+    Channel channel;
     char *parsable = request->data.response;
     cJSON *data = cJSON_Parse(parsable);
-    channel.data = data;
+
     channel.slug = cJSON_Print(cJSON_GetObjectItem(data, "slug"));
+    channel.title = cJSON_Print(cJSON_GetObjectItem(data, "title"));
+    channel.status = cJSON_Print(cJSON_GetObjectItem(data, "status"));
+
+    channel.updated_at = cJSON_Print(cJSON_GetObjectItem(data, "updated_at"));
+    channel.created_at = cJSON_Print(cJSON_GetObjectItem(data, "created_at"));
+
+    channel.length = atoi(cJSON_Print(cJSON_GetObjectItem(data, "length")));
+    channel.id = atoi(cJSON_Print(cJSON_GetObjectItem(data, "id")));
+
+		cJSON_Delete(data);
     return channel;
 }
 

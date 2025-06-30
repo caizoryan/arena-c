@@ -8,6 +8,7 @@
 #include <curl/curl.h>
 #include "cJSON.h"
 #include "channel.h"
+#include "sqlite.h"
 #include "main.h"
 
 int SCREEN_WIDTH = 0;
@@ -119,10 +120,11 @@ struct ChannelRequestArr {
 } requests; 
 
 int main(int argc, char **argv) {
+  sqlite3 *db = setup_db();
+
 	/* init a multi stack */
 	CURLM *multi_handle = curl_multi_init();
 	for(size_t i = 0; i < sizeof(slugs)/sizeof(slugs[0]); i++){
-		printf("line %ld\n", i);
 		requests.buff[i] = construct_channel_request(slugs[i]);
 		curl_multi_add_handle(multi_handle, requests.buff[i]->curl);
 		++requests.len;
@@ -148,10 +150,10 @@ int main(int argc, char **argv) {
 		} while(msg);
 	}
 
-	ChannelParsed channels[64];
+	Channel channels[64];
 	int channel_len = 0;
 	for(int i = 0; i < requests.len; i++){
-		ChannelParsed channel = parse_channel(requests.buff[i]); 
+		Channel channel = parse_channel(requests.buff[i]); 
 		channels[i] = channel;
 		++channel_len;
 	}
@@ -161,17 +163,24 @@ int main(int argc, char **argv) {
     /* endgame(); */
 
 	for(int i = 0; i < requests.len; i++){
-		char *len = cJSON_Print(cJSON_GetObjectItem(channels[i].data, "length"));
+		int len = channels[i].length;
 		printf("%d. slug: %s\t", i, channels[i].slug);
-		printf("length, %s\n", len);
-		free(len);
+		printf("length, %d\n", len);
+		addChannel(db, channels[i]);
 
 		curl_multi_remove_handle(multi_handle, requests.buff[i]->curl);
 		clean_channel_request(requests.buff[i]);
-		cJSON_Delete(channels[i].data);
 		free(channels[i].slug);
+		free(channels[i].title);
+		free(channels[i].updated_at);
+		free(channels[i].created_at);
+		free(channels[i].status);
 	}
+
 	curl_multi_cleanup(multi_handle);
+
+  listChannel(db);
+  sqlite3_close(db);
 
 	return 0;
 }
