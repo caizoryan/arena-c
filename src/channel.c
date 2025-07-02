@@ -56,6 +56,9 @@ void parse_contents(Channel channel, cJSON *data){
 		blocks[i] = block;
 		/* printf("\t%d.\tID:\t%s\t%s\t%s\n", i, id, block.title, block._class); */
 		free(id);
+		free(block.title);
+		free(block._class);
+		free(block.base_class);
 	}
 
 	free(blocks);

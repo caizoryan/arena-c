@@ -77,12 +77,12 @@ cJSON* get_block(char* slugorid){
     return block;
 }
 
-void process_multiple_channels(char *slugs[], int len,sqlite3 *db){
-	struct ChannelRequestArr {
-			ChannelRequest *buff[128];
-			int len;
-	} requests;
+struct ChannelRequestArr {
+		ChannelRequest *buff[128];
+		int len;
+} requests;
 
+void process_multiple_channels(char *slugs[], int len,sqlite3 *db){
 	/* init a multi stack */
 	CURLM *multi_handle = curl_multi_init();
 	for(int i = 0; i < len; i++){
@@ -107,7 +107,7 @@ void process_multiple_channels(char *slugs[], int len,sqlite3 *db){
 		do {
 				msg = curl_multi_info_read(multi_handle, &queued);
 				if(msg && msg->msg == CURLMSG_DONE) {
-				printf("Transfer completed\n");
+					printf("Transfer completed\n");
 			}
 		} while(msg);
 	}
@@ -121,13 +121,23 @@ void process_multiple_channels(char *slugs[], int len,sqlite3 *db){
 		channels[i] = channel;
 		++channel_len;
 
-		printf("%d. slug: %s\t", i, channel.slug);
 		addChannel(db, channel);
+	}
+
+	/* Clean up */
+	for(int i = 0; i < requests.len; i++){
+		Channel c = channels[i] ;
+
+		printf("%d. CLEANING UP %s\t\n", i, c.slug);
 
 		curl_multi_remove_handle(multi_handle, requests.buff[i]->curl);
-
 		clean_channel_request(requests.buff[i]);
-		cleanChannel(channel);
+
+		free(c.slug);
+		free(c.title);
+		free(c.updated_at);
+		free(c.created_at);
+		free(c.status);
 	}
 
 	curl_multi_cleanup(multi_handle);
