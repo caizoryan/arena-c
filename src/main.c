@@ -31,6 +31,8 @@ CURL* GETCURL(char *url, struct curl_slist* headers, struct memory *chunk){
 	}
 	return curl;
 }
+
+
 void GET(char *url, struct curl_slist* headers, struct memory *chunk){
   CURL *curl;
   CURLcode res;
@@ -83,7 +85,7 @@ void process_multiple_channels(char *slugs[], int len,sqlite3 *db){
 
 	/* init a multi stack */
 	CURLM *multi_handle = curl_multi_init();
-	for(size_t i = 0; i < len; i++){
+	for(int i = 0; i < len; i++){
 		requests.buff[i] = construct_channel_request(slugs[i]);
 		curl_multi_add_handle(multi_handle, requests.buff[i]->curl);
 		++requests.len;
@@ -130,6 +132,7 @@ void process_multiple_channels(char *slugs[], int len,sqlite3 *db){
 
 	curl_multi_cleanup(multi_handle);
 }
+
 int main(int argc, char **argv) {
   sqlite3 *db = setup_db();
 	char *slugs[] = {

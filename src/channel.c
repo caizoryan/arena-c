@@ -29,7 +29,7 @@ Channel parse_channel(ChannelRequest *request){
     channel.id = atoi(id);
 
 		printf("parsing %s\n", channel.slug);
-		parse_contents(channel,data);
+		parse_contents(channel, data);
 		printf("DONE PARSING %s\n", channel.slug);
 
 		free(len);
@@ -54,9 +54,11 @@ void parse_contents(Channel channel, cJSON *data){
 		block.base_class = cJSON_Print(cJSON_GetObjectItem(item, "base_class"));
 
 		blocks[i] = block;
-		printf("\t%d.\tID:\t%s\t%s\t%s\n", i, id, block.title, block._class);
+		/* printf("\t%d.\tID:\t%s\t%s\t%s\n", i, id, block.title, block._class); */
 		free(id);
 	}
+
+	free(blocks);
 }
 
 static size_t cb(char *data, size_t size, size_t nmemb, void *userp)
