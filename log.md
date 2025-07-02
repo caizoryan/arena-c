@@ -1,4 +1,19 @@
-# <2025-05-23 Fri> Today:
+# <2025-06-30 Mon> Stuff:
+### SQLITE
+- Added channel table (copied from old (js) proj)
+- Able to add to channel table
+- Able to parse json and add to channel table
+
+### Next up
+- Add contents to db
+  - Make a blocks table
+  - Make a connections table
+  - Make an image, attachment, source table
+  - Process a json from the req, populate and handle contents
+  - check for if channel/block already added with id
+	- if added check if date before or after...
+
+# <2025-05-23 Fri> Basics:
 
 ### SQLITE
 Added some sqlite stuff. Can add to and read a sqlite db. Now will have funky fun :)
