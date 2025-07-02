@@ -13,6 +13,15 @@ typedef struct {
 
 /* size_t cb(char *data, size_t size, size_t nmemb, struct memory *mem); */
 void clean_channel_request(ChannelRequest *req);
+
+typedef struct {
+	int id;
+	char *title;
+	char *_class;
+	char *base_class;
+	/* char *content; */
+} Block;
+
 typedef struct {
 	int id;
 	int length;
@@ -25,6 +34,8 @@ typedef struct {
 	char *updated_at;
 	char *created_at;
 
+	Block **contents;
+	int contents_len;
 } Channel;
 
 Channel parse_channel(ChannelRequest *request);

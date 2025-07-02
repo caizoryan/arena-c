@@ -20,7 +20,6 @@ void addChannel(sqlite3 *db, Channel channel) {
 
   free(err);
 } 
-
 void listChannel(sqlite3 *db) {
   sqlite3_stmt *stmt; 
   const char *sql = "select * from channel;";
@@ -40,6 +39,13 @@ void listChannel(sqlite3 *db) {
 		printf("-----------------------------------------------------\n");
   }
 
+}
+void cleanChannel(Channel channel){
+		free(channel.slug);
+		free(channel.title);
+		free(channel.updated_at);
+		free(channel.created_at);
+		free(channel.status);
 }
 
 sqlite3 *setup_db() {

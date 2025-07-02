@@ -22,7 +22,6 @@ struct memory {
   size_t size;
 };
 
-
 struct memory_list {
   struct memory* list;
   size_t size;
@@ -47,20 +46,6 @@ CURL* get_channel_curl(char* slugorid);
 // allocates for you
 struct memory_list MULTIGET(char **url_list);
 
-
-typedef struct {
-	char *title;
-	int id;
-} Block;
-
-typedef struct {
-} BlockAttachment;
-
-typedef struct {
-} BlockLink;
-
-typedef struct {
-} BlockImage;
 
 typedef struct {
 	char *title;
