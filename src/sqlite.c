@@ -39,24 +39,6 @@ void listChannel(sqlite3 *db) {
 		printf("%-5d%-25s%s\n", id, title, slug);
 		printf("-----------------------------------------------------\n");
   }
-
-}
-void cleanChannel(Channel channel){
-		free(channel.slug);
-		free(channel.title);
-		free(channel.updated_at);
-		free(channel.created_at);
-		free(channel.status);
-
-		for(int i = 0; i < channel.contents_len; i++){
-			Block block = channel.contents[i];
-			printf("should be freeing %s", block.title);
-			free(block.title);
-			free(block._class);
-			free(block.base_class);
-		}
-
-		free(channel.contents);
 }
 
 sqlite3 *setup_db() {

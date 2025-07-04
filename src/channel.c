@@ -12,7 +12,6 @@ Channel parse_channel(ChannelRequest *request){
 
 		// TODO: handle cJSON errors
 		// TODO: make sure data parsed properly
-
 		// TODO: Remove quotes from cJSON_Print when processing
     channel.slug = cJSON_Print(cJSON_GetObjectItem(data, "slug"));
     channel.title = cJSON_Print(cJSON_GetObjectItem(data, "title"));
@@ -26,9 +25,8 @@ Channel parse_channel(ChannelRequest *request){
 
     channel.length = atoi(len);
     channel.id = atoi(id);
-
-		printf("parsing %s\n", channel.slug);
-		printf("DONE PARSING %s\n", channel.slug);
+		free(len);
+		free(id);
 
 		cJSON *contents = cJSON_GetObjectItem(data, "contents");
 		int contents_len = cJSON_GetArraySize(contents);
@@ -39,30 +37,19 @@ Channel parse_channel(ChannelRequest *request){
 			char *id = cJSON_Print(cJSON_GetObjectItem(item, "id"));
 
 			blocks[i].id = atoi(id);
+			free(id);
+
 			blocks[i].title = cJSON_Print(cJSON_GetObjectItem(item, "title"));
 			blocks[i]._class = cJSON_Print(cJSON_GetObjectItem(item, "class"));
 			blocks[i].base_class = cJSON_Print(cJSON_GetObjectItem(item, "base_class"));
-
-			/* printf("\t%d.\tID:\t%s\t%s\t%s\n", i, id, block.title, block._class); */
-			free(id);
 		}
 
 		channel.contents = blocks;
 		channel.contents_len = contents_len;
 
-		printf("First Block: %s\n", channel.contents[0].title);
-		printf("2 Block: %s\n", channel.contents[1].title);
-		printf("3 Block: %s\n", channel.contents[2].title);
-		printf("4 Block: %s\n", channel.contents[3].title);
-		printf("5 Block: %s\n", channel.contents[4].title);
-
-		free(len);
-		free(id);
-
 		cJSON_Delete(data);
     return channel;
 }
-
 
 static size_t cb(char *data, size_t size, size_t nmemb, void *userp)
 {
@@ -117,4 +104,20 @@ void clean_channel_request(ChannelRequest *req){
     curl_slist_free_all(req->headers);
     free(req->data.response);
 }
+void clean_channel(Channel channel){
+		free(channel.slug);
+		free(channel.title);
+		free(channel.updated_at);
+		free(channel.created_at);
+		free(channel.status);
 
+		for(int i = 0; i < channel.contents_len; i++){
+			Block block = channel.contents[i];
+			printf("should be freeing %s", block.title);
+			free(block.title);
+			free(block._class);
+			free(block.base_class);
+		}
+
+		free(channel.contents);
+}

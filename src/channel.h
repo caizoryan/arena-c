@@ -40,5 +40,6 @@ typedef struct {
 
 Channel parse_channel(ChannelRequest *request);
 ChannelRequest *construct_channel_request(char *slug);
+void clean_channel(Channel channel);
 
 #endif
