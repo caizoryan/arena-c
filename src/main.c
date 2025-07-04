@@ -9,6 +9,7 @@
 #include "sqlite.h"
 #include "main.h"
 
+
 struct curl_slist* json_headers(){
     struct curl_slist* headers = NULL;
     headers = curl_slist_append(headers, "Accept: application/json");
