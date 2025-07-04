@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-void parse_contents(Channel channel, cJSON *data);
 Channel parse_channel(ChannelRequest *request){
     Channel channel;
     char *parsable = request->data.response;
@@ -29,8 +28,33 @@ Channel parse_channel(ChannelRequest *request){
     channel.id = atoi(id);
 
 		printf("parsing %s\n", channel.slug);
-		parse_contents(channel, data);
 		printf("DONE PARSING %s\n", channel.slug);
+
+		cJSON *contents = cJSON_GetObjectItem(data, "contents");
+		int contents_len = cJSON_GetArraySize(contents);
+		Block* blocks = malloc(sizeof(Block) * contents_len); 
+
+		for(int i = 0; i < contents_len; i++){
+			cJSON *item = cJSON_GetArrayItem(contents, i);
+			char *id = cJSON_Print(cJSON_GetObjectItem(item, "id"));
+
+			blocks[i].id = atoi(id);
+			blocks[i].title = cJSON_Print(cJSON_GetObjectItem(item, "title"));
+			blocks[i]._class = cJSON_Print(cJSON_GetObjectItem(item, "class"));
+			blocks[i].base_class = cJSON_Print(cJSON_GetObjectItem(item, "base_class"));
+
+			/* printf("\t%d.\tID:\t%s\t%s\t%s\n", i, id, block.title, block._class); */
+			free(id);
+		}
+
+		channel.contents = blocks;
+		channel.contents_len = contents_len;
+
+		printf("First Block: %s\n", channel.contents[0].title);
+		printf("2 Block: %s\n", channel.contents[1].title);
+		printf("3 Block: %s\n", channel.contents[2].title);
+		printf("4 Block: %s\n", channel.contents[3].title);
+		printf("5 Block: %s\n", channel.contents[4].title);
 
 		free(len);
 		free(id);
@@ -39,30 +63,6 @@ Channel parse_channel(ChannelRequest *request){
     return channel;
 }
 
-void parse_contents(Channel channel, cJSON *data){
-	cJSON *contents = cJSON_GetObjectItem(data, "contents");
-	int contents_len = cJSON_GetArraySize(contents);
-	Block *blocks = malloc(sizeof(Block) * contents_len); 
-
-	for(int i = 0; i < contents_len; i++){
-		cJSON *item =  cJSON_GetArrayItem(contents, i);
-		Block block;
-		char *id = cJSON_Print(cJSON_GetObjectItem(item, "id"));
-		block.id = atoi(id);
-		block.title = cJSON_Print(cJSON_GetObjectItem(item, "title"));
-		block._class = cJSON_Print(cJSON_GetObjectItem(item, "class"));
-		block.base_class = cJSON_Print(cJSON_GetObjectItem(item, "base_class"));
-
-		blocks[i] = block;
-		/* printf("\t%d.\tID:\t%s\t%s\t%s\n", i, id, block.title, block._class); */
-		free(id);
-		free(block.title);
-		free(block._class);
-		free(block.base_class);
-	}
-
-	free(blocks);
-}
 
 static size_t cb(char *data, size_t size, size_t nmemb, void *userp)
 {
@@ -117,3 +117,4 @@ void clean_channel_request(ChannelRequest *req){
     curl_slist_free_all(req->headers);
     free(req->data.response);
 }
+

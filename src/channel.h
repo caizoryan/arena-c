@@ -34,7 +34,7 @@ typedef struct {
 	char *updated_at;
 	char *created_at;
 
-	Block **contents;
+	Block *contents;
 	int contents_len;
 } Channel;
 

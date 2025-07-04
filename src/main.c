@@ -127,18 +127,32 @@ void process_multiple_channels(char *slugs[], int len,sqlite3 *db){
 
 	/* Clean up */
 	for(int i = 0; i < requests.len; i++){
-		Channel c = channels[i] ;
+		Channel c = channels[i];
 
 		printf("%d. CLEANING UP %s\t\n", i, c.slug);
 
-		curl_multi_remove_handle(multi_handle, requests.buff[i]->curl);
-		clean_channel_request(requests.buff[i]);
+		cleanChannel(c);
 
-		free(c.slug);
-		free(c.title);
-		free(c.updated_at);
-		free(c.created_at);
-		free(c.status);
+		/* printf("First Block: %s\nlen: %d\n", c.contents[0].title,c.contents_len); */
+
+		/* free(c.slug); */
+		/* free(c.title); */
+		/* free(c.updated_at); */
+		/* free(c.created_at); */
+		/* free(c.status); */
+
+		/* clean_channel_request(requests.buff[i]); */
+		/* curl_multi_remove_handle(multi_handle, requests.buff[i]->curl); */
+
+		/* for(int i = 0; i < c.contents_len; i++){ */
+		/* 	Block block = c.contents[i]; */
+		/* 	printf("freeing %d", block.id); */
+		/* 	free(block.title); */
+		/* 	free(block._class); */
+		/* 	free(block.base_class); */
+		/* } */
+
+		/* free(c.contents); */
 	}
 
 	curl_multi_cleanup(multi_handle);
