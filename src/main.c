@@ -33,7 +33,6 @@ CURL* GETCURL(char *url, struct curl_slist* headers, struct memory *chunk){
 	return curl;
 }
 
-
 void GET(char *url, struct curl_slist* headers, struct memory *chunk){
   CURL *curl;
   CURLcode res;
