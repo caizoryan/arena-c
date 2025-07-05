@@ -112,10 +112,10 @@ void process_multiple_channels(char *slugs[], int len,sqlite3 *db){
 		} while(msg);
 	}
 
-	/* Parse add and print channel */
+	/* Parse and add channel */
 	for(int i = 0; i < requests.len; i++){
 		Channel channel = parse_channel(requests.buff[i]); 
-		addChannel(db, channel);
+		add_channel(db, channel);
 		clean_channel(channel);
 	}
 
@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
 
 	process_multiple_channels(slugs, 5, db);
 
-  listChannel(db);
+  list_channel(db);
   sqlite3_close(db);
 
 	return 0;

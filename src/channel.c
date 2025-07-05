@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+char* trim(char* str);
 Channel parse_channel(ChannelRequest *request){
     Channel channel;
     char *parsable = request->data.response;
@@ -42,6 +43,17 @@ Channel parse_channel(ChannelRequest *request){
 			blocks[i].title = cJSON_Print(cJSON_GetObjectItem(item, "title"));
 			blocks[i]._class = cJSON_Print(cJSON_GetObjectItem(item, "class"));
 			blocks[i].base_class = cJSON_Print(cJSON_GetObjectItem(item, "base_class"));
+			blocks[i].content = cJSON_Print(cJSON_GetObjectItem(item, "content"));
+
+			char *connection_id = cJSON_Print(cJSON_GetObjectItem(item, "connection_id"));
+			blocks[i].connection_id = atoi(connection_id);
+			free(connection_id);
+
+			char *position = cJSON_Print(cJSON_GetObjectItem(item, "position"));
+			blocks[i].position = atoi(position);
+			free(position);
+
+			blocks[i].parent_id = channel.id;
 		}
 
 		channel.contents = blocks;
@@ -49,6 +61,20 @@ Channel parse_channel(ChannelRequest *request){
 
 		cJSON_Delete(data);
     return channel;
+}
+
+char* trim(char* str){
+	char* strrr = str+1;
+	int len = strlen(strrr);
+
+	if (len < 2) {
+		strrr[len - 1] = 'x';
+	} else {
+		strrr[len - 1] = '\0';
+	}
+
+	printf("%s", strrr);
+	return strrr;
 }
 
 static size_t cb(char *data, size_t size, size_t nmemb, void *userp)
@@ -113,10 +139,10 @@ void clean_channel(Channel channel){
 
 		for(int i = 0; i < channel.contents_len; i++){
 			Block block = channel.contents[i];
-			printf("should be freeing %s", block.title);
 			free(block.title);
 			free(block._class);
 			free(block.base_class);
+			free(block.content);
 		}
 
 		free(channel.contents);

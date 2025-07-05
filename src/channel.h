@@ -16,9 +16,13 @@ void clean_channel_request(ChannelRequest *req);
 
 typedef struct {
 	int id;
+	int connection_id;
+	int position;
+	int parent_id;
 	char *title;
 	char *_class;
 	char *base_class;
+	char *content;
 	/* char *content; */
 } Block;
 
