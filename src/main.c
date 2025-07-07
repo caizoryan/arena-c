@@ -4,84 +4,13 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "cJSON.h"
 #include "channel.h"
 #include "sqlite.h"
-#include "main.h"
-
-
-struct curl_slist* json_headers(){
-    struct curl_slist* headers = NULL;
-    headers = curl_slist_append(headers, "Accept: application/json");
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-    headers = curl_slist_append(headers, "charset: utf-8");
-    return headers;
-}
-
-CURL* GETCURL(char *url, struct curl_slist* headers, struct memory *chunk){
-	CURL *curl;
-	curl = curl_easy_init();
-
-	if(curl) {
-		// URL & Headers
-		curl_easy_setopt(curl, CURLOPT_URL, url);
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
-
-		// handle writing data
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)chunk);
-	}
-	return curl;
-}
-
-void GET(char *url, struct curl_slist* headers, struct memory *chunk){
-  CURL *curl;
-  CURLcode res;
-  curl = GETCURL(url, headers, chunk);
-
-  if(curl) {
-    /* Perform the request, res gets the return code */
-    res = curl_easy_perform(curl);
-
-    /* Check for errors */
-    if(res != CURLE_OK)
-	    fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-
-    /* always cleanup */
-    curl_easy_cleanup(curl);
-	}
-}
-
-cJSON* get_channel(char* slugorid){
-    struct memory chunk = {0};
-    cJSON* channel;
-
-    char url[512] = "https://api.are.na/v2/channels/";
-    strcat(url, slugorid);
-    strcat(url, "?per=100");
-
-    GET(url, json_headers(), &chunk);
-    channel = cJSON_Parse(chunk.response);
-
-    return channel;
-}
-cJSON* get_block(char* slugorid){
-    struct memory chunk = {0};
-    char url[512] = "https://api.are.na/v2/blocks/";
-    strcat(url, slugorid);
-
-    cJSON* block;
-
-    GET(url, json_headers(), &chunk);
-    block = cJSON_Parse(chunk.response);
-
-    return block;
-}
 
 struct ChannelRequestArr {
 		ChannelRequest *buff[128];
 		int len;
 } requests;
-
 void process_multiple_channels(char *slugs[], int len,sqlite3 *db){
 	/* init a multi stack */
 	CURLM *multi_handle = curl_multi_init();
@@ -121,18 +50,21 @@ void process_multiple_channels(char *slugs[], int len,sqlite3 *db){
 
 	curl_multi_cleanup(multi_handle);
 }
-
 int main(int argc, char **argv) {
   sqlite3 *db = setup_db();
 	char *slugs[] = {
-			"journal-wandering", 
-			"list-websites-lwvz0acnwli",
-			"list-are-na-api-possibilities",
+			"notes-unthought",
 			"list-are-na-gists",
-			"digital-postcards-postcards-people-make"
+			/* "notes-xenofeminism-and-planetary-orientation", */
+			/* "journal-wandering", */
+			/* "list-websites-lwvz0acnwli", */
+			/* "list-are-na-api-possibilities", */
+			/* "reference-computers-terminal-user-interface", */
+			/* "reference-gd1-why-do-you-love-p3", */
+			/* "digital-postcards-postcards-people-make" */
 	};
 
-	process_multiple_channels(slugs, 5, db);
+	process_multiple_channels(slugs, 2, db);
 
   list_channel(db);
   sqlite3_close(db);

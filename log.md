@@ -6,10 +6,18 @@ Turns out. Leaks wasn't working becuase it was segfaulting! And it just failed t
 - Can go through channel contents from the req
 - read them into an array and pack it with the channel along with a contents len
 - and clean up works as well, no leaks as of yet.
+- Add blocks and connections to db
+- Sanitize strings for db!
 
 ### Next up
-- Add this stuff to the db
-
+- add image, attachment, sources tables
+- add user table
+- download/generated timestamp for blocks (connections)
+- query and get blocks of a channel and compile channel
+- clean up and re-organize codebase
+  - [db/sqlite]
+  - [are.na]
+  - [cli]
 
 # <2025-07-03 Thu> Breakdown:
 ### Emotional

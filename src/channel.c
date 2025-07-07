@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "arena.h"
 
 char* trim(char* str);
 Channel parse_channel(ChannelRequest *request){
