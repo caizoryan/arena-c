@@ -111,25 +111,19 @@ User* parse_user(cJSON* channel){
 
 ImageData* parse_image_data(cJSON* block){
 	cJSON* image_json = cJSON_GetObjectItem(block, "image");
-	char* idddd = cJSON_Print(cJSON_GetObjectItem(block, "id"));
-	char* class_json = cJSON_Print(cJSON_GetObjectItem(block, "class"));
+	/* char* idddd = cJSON_Print(cJSON_GetObjectItem(block, "id")); */
+	/* char* class_json = cJSON_Print(cJSON_GetObjectItem(block, "class")); */
 	ImageData* image = malloc(sizeof(ImageData));
 
 	if (cJSON_IsNull(image_json) || image_json == NULL) {
-		printf("IS NULL\n");
 		free(image);
 		image = NULL;
 	}
 
 	else {
-		printf("class: %s\t%s\tnot null?\n", class_json, idddd);
-		if (!strcmp(class_json, "\"Channel\"")){
-			printf("CHANNEL IMAGE: %s", cJSON_Print(image_json));
-		}
-		image->content_type = cJSON_Print(cJSON_GetObjectItem(block, "content_type"));
-		image->filename = cJSON_Print(cJSON_GetObjectItem(block, "filename"));
-		image->display_url = cJSON_Print(cJSON_GetObjectItem(cJSON_GetObjectItem(block, "display"), "url"));
-		printf("file: %s\n", image->filename);
+		image->content_type = cJSON_Print(cJSON_GetObjectItem(image_json, "content_type"));
+		image->filename = cJSON_Print(cJSON_GetObjectItem(image_json, "filename"));
+		image->display_url = cJSON_Print(cJSON_GetObjectItem(cJSON_GetObjectItem(image_json, "display"), "url"));
 	}
 
 	return image;
@@ -208,6 +202,14 @@ void clean_channel(Channel channel){
 			free(block.user->first_name);
 			free(block.user->last_name);
 			free(block.user);
+
+			if (block.image != NULL) {
+				free(block.image->content_type);
+				free(block.image->filename);
+				free(block.image->display_url);
+				free(block.image);
+			}
+
 		}
 
 		free(channel.contents);
