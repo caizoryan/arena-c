@@ -1,12 +1,11 @@
 #include "channel.h"
 #include "cJSON.h"
 #include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "arena.h"
 
-char* trim(char* str);
+Block* parse_contents(cJSON* channel, int size, int parent_id);
 Channel parse_channel(ChannelRequest *request){
     Channel channel;
     char *parsable = request->data.response;
@@ -18,20 +17,31 @@ Channel parse_channel(ChannelRequest *request){
     channel.slug = cJSON_Print(cJSON_GetObjectItem(data, "slug"));
     channel.title = cJSON_Print(cJSON_GetObjectItem(data, "title"));
     channel.status = cJSON_Print(cJSON_GetObjectItem(data, "status"));
-
     channel.updated_at = cJSON_Print(cJSON_GetObjectItem(data, "updated_at"));
     channel.created_at = cJSON_Print(cJSON_GetObjectItem(data, "created_at"));
 
 		char *len = cJSON_Print(cJSON_GetObjectItem(data, "length"));
 		char *id = cJSON_Print(cJSON_GetObjectItem(data, "id"));
 
-    channel.length = atoi(len);
     channel.id = atoi(id);
+    channel.length = atoi(len);
+
 		free(len);
 		free(id);
 
 		cJSON *contents = cJSON_GetObjectItem(data, "contents");
-		int contents_len = cJSON_GetArraySize(contents);
+		int size = cJSON_GetArraySize(contents);
+
+		channel.contents = parse_contents(data, size, channel.id);
+		channel.contents_len = size;
+
+		cJSON_Delete(data);
+    return channel;
+}
+
+Block* parse_contents(cJSON* channel, int size, int parent_id){
+		cJSON *contents = cJSON_GetObjectItem(channel, "contents");
+		int contents_len = size;
 		Block* blocks = malloc(sizeof(Block) * contents_len); 
 
 		for(int i = 0; i < contents_len; i++){
@@ -54,29 +64,12 @@ Channel parse_channel(ChannelRequest *request){
 			blocks[i].position = atoi(position);
 			free(position);
 
-			blocks[i].parent_id = channel.id;
+			blocks[i].parent_id = parent_id;
 		}
 
-		channel.contents = blocks;
-		channel.contents_len = contents_len;
-
-		cJSON_Delete(data);
-    return channel;
+		return blocks;
 }
 
-char* trim(char* str){
-	char* strrr = str+1;
-	int len = strlen(strrr);
-
-	if (len < 2) {
-		strrr[len - 1] = 'x';
-	} else {
-		strrr[len - 1] = '\0';
-	}
-
-	printf("%s", strrr);
-	return strrr;
-}
 
 static size_t cb(char *data, size_t size, size_t nmemb, void *userp)
 {

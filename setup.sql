@@ -28,4 +28,48 @@ CREATE TABLE IF NOT EXISTS connections (
     block_id INTEGER NOT NULL
 );
 
-insert into channel values(9932, 'funky title', 'funky-title-sevas8s9', 0, 2, 'private', '', '');
+CREATE TABLE IF NOT EXISTS groups (
+    id INTEGER PRIMARY KEY NOT NULL UNIQUE,
+    title TEXT NOT NULL
+)
+
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY NOT NULL UNIQUE,
+    slug TEXT NOT NULL,
+    username TEXT NOT NULL,
+    avatar TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    channel_count INTEGER NOT NULL,
+    following_count INTEGER NOT NULL,
+    follower_count INTEGER NOT NULL
+)
+
+CREATE TABLE IF NOT EXISTS sources (
+    id INTEGER PRIMARY KEY NOT NULL UNIQUE,
+    url TEXT NOT NULL
+)
+
+CREATE TABLE IF NOT EXISTS image_data (
+    id INTEGER PRIMARY KEY NOT NULL UNIQUE,
+    filename TEXT,
+    content_type TEXT,
+    large_url TEXT NOT NULL,
+    original_url TEXT NOT NULL,
+    display_url TEXT NOT NULL,
+    thumb_url TEXT NOT NULL,
+    square_url TEXT NOT NULL
+)
+
+CREATE TABLE IF NOT EXISTS attachments (
+    id INTEGER PRIMARY KEY NOT NULL UNIQUE,
+    file_name TEXT NOT NULL,
+    file_size INTEGER NOT NULL,
+    file_size_display TEXT NOT NULL,
+    content_type TEXT NOT NULL,
+    extension TEXT NOT NULL,
+    url TEXT NOT NULL,
+    FOREIGN KEY (id) REFERENCES block(id)
+)
+

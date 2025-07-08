@@ -44,6 +44,7 @@ void process_multiple_channels(char *slugs[], int len,sqlite3 *db){
 	/* Parse and add channel */
 	for(int i = 0; i < requests.len; i++){
 		Channel channel = parse_channel(requests.buff[i]); 
+
 		add_channel(db, channel);
 		clean_channel(channel);
 	}
