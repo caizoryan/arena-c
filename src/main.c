@@ -44,7 +44,6 @@ void process_multiple_channels(char *slugs[], int len,sqlite3 *db){
 	/* Parse and add channel */
 	for(int i = 0; i < requests.len; i++){
 		Channel channel = parse_channel(requests.buff[i]); 
-
 		add_channel(db, channel);
 		clean_channel(channel);
 	}
@@ -56,20 +55,19 @@ int main(int argc, char **argv) {
 	char *slugs[] = {
 			"notes-unthought",
 			"list-are-na-gists",
-			/* "notes-xenofeminism-and-planetary-orientation", */
-			/* "journal-wandering", */
+			"notes-xenofeminism-and-planetary-orientation",
+			"journal-wandering",
 			/* "list-websites-lwvz0acnwli", */
-			/* "list-are-na-api-possibilities", */
+			"list-are-na-api-possibilities",
 			/* "reference-computers-terminal-user-interface", */
 			/* "reference-gd1-why-do-you-love-p3", */
 			/* "digital-postcards-postcards-people-make" */
 	};
 
-	process_multiple_channels(slugs, 2, db);
+	process_multiple_channels(slugs, 5, db);
 
   list_channel(db);
   sqlite3_close(db);
 
 	return 0;
 }
-

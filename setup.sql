@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS connections (
 CREATE TABLE IF NOT EXISTS groups (
     id INTEGER PRIMARY KEY NOT NULL UNIQUE,
     title TEXT NOT NULL
-)
+);
 
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY NOT NULL UNIQUE,
@@ -44,12 +44,12 @@ CREATE TABLE IF NOT EXISTS users (
     channel_count INTEGER NOT NULL,
     following_count INTEGER NOT NULL,
     follower_count INTEGER NOT NULL
-)
+);
 
 CREATE TABLE IF NOT EXISTS sources (
     id INTEGER PRIMARY KEY NOT NULL UNIQUE,
     url TEXT NOT NULL
-)
+);
 
 CREATE TABLE IF NOT EXISTS image_data (
     id INTEGER PRIMARY KEY NOT NULL UNIQUE,
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS image_data (
     display_url TEXT NOT NULL,
     thumb_url TEXT NOT NULL,
     square_url TEXT NOT NULL
-)
+);
 
 CREATE TABLE IF NOT EXISTS attachments (
     id INTEGER PRIMARY KEY NOT NULL UNIQUE,
@@ -71,5 +71,5 @@ CREATE TABLE IF NOT EXISTS attachments (
     extension TEXT NOT NULL,
     url TEXT NOT NULL,
     FOREIGN KEY (id) REFERENCES block(id)
-)
+);
 

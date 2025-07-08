@@ -7,6 +7,8 @@
 
 void add_block_connection(sqlite3 *db, Block block);
 void add_block(sqlite3 *db, Block block);
+void add_user(sqlite3 *db, User user);
+
 void add_channel(sqlite3 *db, Channel channel) {
   char sql[2048];
   sprintf(sql,
@@ -32,11 +34,11 @@ void add_channel(sqlite3 *db, Channel channel) {
 		}
 	}
 
+	add_user(db, *channel.user);
+
   free(err);
 }
-
 void add_block(sqlite3 *db, Block block) {
-  /* char sql[2048]; */
 	char* sql = sqlite3_mprintf(
 			"INSERT OR REPLACE INTO block "
 			"(id, title, class, base_class, content) "
@@ -51,7 +53,31 @@ void add_block(sqlite3 *db, Block block) {
 
   if (rc != SQLITE_OK){fprintf(stderr, "ERROR: %d\n %s\n\nSQLITE\n%s\n\n", block.id,err, sql);}
   /* else {printf("succesfully done block\n");} */
+
+	if (block.image != NULL) {
+		printf("file!WWWWWHAT: %s\n", block.image->filename);
+	}
+
+	add_user(db, *block.user);
 	add_block_connection(db, block);
+
+  free(err);
+}
+void add_user(sqlite3 *db, User user) {
+	char* sql = sqlite3_mprintf(
+			"INSERT OR REPLACE INTO users "
+			"(id, slug, username, first_name, last_name, avatar,  created_at, channel_count, following_count, follower_count) "
+      "VALUES "
+			"(%d, %q, %q, %q, %q, %q, %q, %d, %d, %d)",
+			user.id, user.slug, user.username, user.first_name, user.last_name,
+			user.avatar, user.created_at, user.channel_count, user.following_count, user.follower_count);
+
+  char *err = 0;
+  int rc = sqlite3_exec(db, sql, 0, 0, &err);
+	sqlite3_free(sql);
+
+  if (rc != SQLITE_OK){fprintf(stderr, "ERROR: %s\n %s\n\nSQLITE\n%s\n\n", user.slug, err, sql);}
+  /* else {printf("succesfully done block\n");} */
 
   free(err);
 }

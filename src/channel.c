@@ -1,11 +1,16 @@
 #include "channel.h"
 #include "cJSON.h"
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "arena.h"
 
 Block* parse_contents(cJSON* channel, int size, int parent_id);
+User* parse_user(cJSON* channel);
+ImageData* parse_image_data(cJSON* block);
+
 Channel parse_channel(ChannelRequest *request){
     Channel channel;
     char *parsable = request->data.response;
@@ -22,12 +27,15 @@ Channel parse_channel(ChannelRequest *request){
 
 		char *len = cJSON_Print(cJSON_GetObjectItem(data, "length"));
 		char *id = cJSON_Print(cJSON_GetObjectItem(data, "id"));
+		char *user_id = cJSON_Print(cJSON_GetObjectItem(data, "user_id"));
 
     channel.id = atoi(id);
+    channel.user_id = atoi(user_id);
     channel.length = atoi(len);
 
 		free(len);
 		free(id);
+		free(user_id);
 
 		cJSON *contents = cJSON_GetObjectItem(data, "contents");
 		int size = cJSON_GetArraySize(contents);
@@ -35,10 +43,11 @@ Channel parse_channel(ChannelRequest *request){
 		channel.contents = parse_contents(data, size, channel.id);
 		channel.contents_len = size;
 
+		channel.user = parse_user(data);
+
 		cJSON_Delete(data);
     return channel;
 }
-
 Block* parse_contents(cJSON* channel, int size, int parent_id){
 		cJSON *contents = cJSON_GetObjectItem(channel, "contents");
 		int contents_len = size;
@@ -55,6 +64,8 @@ Block* parse_contents(cJSON* channel, int size, int parent_id){
 			blocks[i]._class = cJSON_Print(cJSON_GetObjectItem(item, "class"));
 			blocks[i].base_class = cJSON_Print(cJSON_GetObjectItem(item, "base_class"));
 			blocks[i].content = cJSON_Print(cJSON_GetObjectItem(item, "content"));
+			blocks[i].user = parse_user(item);
+			blocks[i].image = parse_image_data(item);
 
 			char *connection_id = cJSON_Print(cJSON_GetObjectItem(item, "connection_id"));
 			blocks[i].connection_id = atoi(connection_id);
@@ -69,10 +80,62 @@ Block* parse_contents(cJSON* channel, int size, int parent_id){
 
 		return blocks;
 }
+User* parse_user(cJSON* channel){
+	cJSON* user_json = cJSON_GetObjectItem(channel, "user");
+	User* user = malloc(sizeof(User));
 
+	char *id = cJSON_Print(cJSON_GetObjectItem(user_json, "id"));
+	char *channel_count = cJSON_Print(cJSON_GetObjectItem(user_json, "channel_count"));
+	char *following = cJSON_Print(cJSON_GetObjectItem(user_json, "following_count"));
+	char *follower = cJSON_Print(cJSON_GetObjectItem(user_json, "follower_count"));
 
-static size_t cb(char *data, size_t size, size_t nmemb, void *userp)
-{
+	user->channel_count = atoi(channel_count);
+	user->id = atoi(id);
+	user->following_count = atoi(following);
+	user->follower_count = atoi(follower);
+
+	free(follower);
+	free(following);
+	free(channel_count);
+	free(id);
+
+	user->slug = cJSON_Print(cJSON_GetObjectItem(user_json, "slug"));
+	user->username = cJSON_Print(cJSON_GetObjectItem(user_json, "username"));
+	user->avatar = cJSON_Print(cJSON_GetObjectItem(user_json, "avatar"));
+	user->first_name = cJSON_Print(cJSON_GetObjectItem(user_json, "first_name"));
+	user->last_name = cJSON_Print(cJSON_GetObjectItem(user_json, "last_name"));
+	user->created_at = cJSON_Print(cJSON_GetObjectItem(user_json, "created_at"));
+
+	return user;
+}
+
+ImageData* parse_image_data(cJSON* block){
+	cJSON* image_json = cJSON_GetObjectItem(block, "image");
+	char* idddd = cJSON_Print(cJSON_GetObjectItem(block, "id"));
+	char* class_json = cJSON_Print(cJSON_GetObjectItem(block, "class"));
+	ImageData* image = malloc(sizeof(ImageData));
+
+	if (cJSON_IsNull(image_json) || image_json == NULL) {
+		printf("IS NULL\n");
+		free(image);
+		image = NULL;
+	}
+
+	else {
+		printf("class: %s\t%s\tnot null?\n", class_json, idddd);
+		if (!strcmp(class_json, "\"Channel\"")){
+			printf("CHANNEL IMAGE: %s", cJSON_Print(image_json));
+		}
+		image->content_type = cJSON_Print(cJSON_GetObjectItem(block, "content_type"));
+		image->filename = cJSON_Print(cJSON_GetObjectItem(block, "filename"));
+		image->display_url = cJSON_Print(cJSON_GetObjectItem(cJSON_GetObjectItem(block, "display"), "url"));
+		printf("file: %s\n", image->filename);
+	}
+
+	return image;
+}
+
+static size_t cb(char *data, size_t size, size_t nmemb, void *userp) {
   size_t realsize = size * nmemb;
   struct memory *mem = (struct memory *)userp;
 
@@ -137,7 +200,22 @@ void clean_channel(Channel channel){
 			free(block._class);
 			free(block.base_class);
 			free(block.content);
+
+			free(block.user->username);
+			free(block.user->avatar);
+			free(block.user->created_at);
+			free(block.user->slug);
+			free(block.user->first_name);
+			free(block.user->last_name);
+			free(block.user);
 		}
 
 		free(channel.contents);
+		free(channel.user->username);
+		free(channel.user->avatar);
+		free(channel.user->created_at);
+		free(channel.user->slug);
+		free(channel.user->first_name);
+		free(channel.user->last_name);
+		free(channel.user);
 }
