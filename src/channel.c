@@ -124,6 +124,10 @@ ImageData* parse_image_data(cJSON* block){
 		image->content_type = cJSON_Print(cJSON_GetObjectItem(image_json, "content_type"));
 		image->filename = cJSON_Print(cJSON_GetObjectItem(image_json, "filename"));
 		image->display_url = cJSON_Print(cJSON_GetObjectItem(cJSON_GetObjectItem(image_json, "display"), "url"));
+		image->thumb_url = cJSON_Print(cJSON_GetObjectItem(cJSON_GetObjectItem(image_json, "thumb"), "url"));
+		image->original_url = cJSON_Print(cJSON_GetObjectItem(cJSON_GetObjectItem(image_json, "original"), "url"));
+		image->square_url = cJSON_Print(cJSON_GetObjectItem(cJSON_GetObjectItem(image_json, "square"), "url"));
+		image->large_url = cJSON_Print(cJSON_GetObjectItem(cJSON_GetObjectItem(image_json, "large"), "url"));
 	}
 
 	return image;
@@ -207,6 +211,10 @@ void clean_channel(Channel channel){
 				free(block.image->content_type);
 				free(block.image->filename);
 				free(block.image->display_url);
+				free(block.image->thumb_url);
+				free(block.image->large_url);
+				free(block.image->original_url);
+				free(block.image->square_url);
 				free(block.image);
 			}
 

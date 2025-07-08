@@ -8,6 +8,7 @@
 void add_block_connection(sqlite3 *db, Block block);
 void add_block(sqlite3 *db, Block block);
 void add_user(sqlite3 *db, User user);
+void add_image_data(sqlite3 *db, ImageData image, int id);
 
 void add_channel(sqlite3 *db, Channel channel) {
   char sql[2048];
@@ -55,7 +56,7 @@ void add_block(sqlite3 *db, Block block) {
   /* else {printf("succesfully done block\n");} */
 
 	if (block.image != NULL) {
-		printf("file!WWWWWHAT: %s\n", block.image->filename);
+		add_image_data(db, *block.image, block.id);
 	}
 
 	add_user(db, *block.user);
@@ -95,6 +96,25 @@ void add_block_connection(sqlite3 *db, Block block){
   int rc = sqlite3_exec(db, sql, 0, 0, &err);
 
   if (rc != SQLITE_OK){fprintf(stderr, "ERROR: %d\n %s\n\nSQLITE\n%s\n\n", block.id,err, sql);}
+  /* else {printf("succesfully done block\n");} */
+
+  free(err);
+
+}
+void add_image_data(sqlite3 *db, ImageData image, int id){
+	char* sql = sqlite3_mprintf(
+			"INSERT OR REPLACE INTO image_data "
+			"(id, filename, content_type, large_url, original_url, display_url, thumb_url, square_url) "
+      "VALUES "
+			"(%d, '%q', '%q', '%q', '%q', '%q', '%q', '%q')",
+					id, image.filename, image.content_type, image.large_url, image.original_url,
+					image.display_url, image.thumb_url, image.square_url);
+
+  char *err = 0;
+  int rc = sqlite3_exec(db, sql, 0, 0, &err);
+	sqlite3_free(sql);
+
+  if (rc != SQLITE_OK){fprintf(stderr, "ERROR: %d\n %s\n\nSQLITE\n%s\n\n", id, err, sql);}
   /* else {printf("succesfully done block\n");} */
 
   free(err);
