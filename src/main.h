@@ -12,6 +12,7 @@
 #define true 1
 #define false 0
 
+int measure(char *string);
 typedef struct position {
 	int x;
 	int y;

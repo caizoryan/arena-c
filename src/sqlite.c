@@ -1,5 +1,6 @@
 #include "sqlite.h"
 #include "channel.h"
+#include "main.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,10 +52,9 @@ void add_block(sqlite3 *db, Block block) {
 
   char *err = 0;
   int rc = sqlite3_exec(db, sql, 0, 0, &err);
-	sqlite3_free(sql);
 
-  if (rc != SQLITE_OK){fprintf(stderr, "ERROR: %d\n %s\n\nSQLITE\n%s\n\n", block.id,err, sql);}
-  /* else {printf("succesfully done block\n");} */
+  if (rc != SQLITE_OK){fprintf(stderr, "ERROR: %d\n %s\n\nSQLITE\n%s\n\n", block.id, err, sql);}
+	sqlite3_free(sql);
 
 	if (block.image != NULL) {
 		add_image_data(db, *block.image, block.id);

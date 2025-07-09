@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include "arena.h"
 
 Block* parse_contents(cJSON* channel, int size, int parent_id);
@@ -63,7 +62,21 @@ Block* parse_contents(cJSON* channel, int size, int parent_id){
 			blocks[i].title = cJSON_Print(cJSON_GetObjectItem(item, "title"));
 			blocks[i]._class = cJSON_Print(cJSON_GetObjectItem(item, "class"));
 			blocks[i].base_class = cJSON_Print(cJSON_GetObjectItem(item, "base_class"));
-			blocks[i].content = cJSON_Print(cJSON_GetObjectItem(item, "content"));
+
+			cJSON* content_json = cJSON_GetObjectItem(item, "content");
+			char* content;
+			if (cJSON_IsString(content_json)){
+				content = content_json->valuestring;
+				int len = strlen(content);
+				blocks[i].content = malloc(len);
+				strcpy(blocks[i].content, content);
+			}
+
+			else {
+				blocks[i].content = malloc(3);
+				strcpy(blocks[i].content, "");
+			}
+
 			blocks[i].user = parse_user(item);
 			blocks[i].image = parse_image_data(item);
 
