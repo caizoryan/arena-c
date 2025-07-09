@@ -166,7 +166,7 @@ int main(int argc, char **argv) {
 				// ---------------
 				int exists = channel_exists(db, list.list[i]);
 				if (exists) {printf("%s, exists\n", list.list[i]);}
-				else {printf("\nchannel doesn't exist \n"); continue;}
+				else {printf("\nchannel doesn't exist \n"); goto free;}
 				
 				// ---------------
 				// MAKE DIRECTORY
@@ -180,13 +180,13 @@ int main(int argc, char **argv) {
 					int rc = mkdir(dir, 0700);
 					if (rc < 0) {
 						printf("Error making %s\n", dir);
-						continue;
+						goto free;
 					}
 				}
 
 				else {
 					printf("%s: DIRECTORY ALREADY EXISTS, CANNOT MOUNT\n", dir);
-					continue;
+					goto free;
 				}
 
 				// get all the blocks
@@ -196,7 +196,7 @@ int main(int argc, char **argv) {
 				for (int bb = 0; bb < blocks.len; bb++){
 					SimpleBlock block = blocks.blocks[bb];
 
-					if (!block.id) continue;
+					if (!block.id) goto free;
 					if (block.id == 31555948) {
 						printf("--------------------------");
 						printf("\n\n%s\n\n", block.content);
@@ -215,6 +215,7 @@ int main(int argc, char **argv) {
 				// [id] - [title].md
 				// dump all the content into it
 
+			free:
 				free(list.list[i]);
 			}
 		}
@@ -264,7 +265,6 @@ string_list read_into_slugs(char* slugs){
 		list.list[list.len] = malloc(bi);
 		strcpy(list.list[list.len++], buffer);
 	}
-
 
 	return list;
 }

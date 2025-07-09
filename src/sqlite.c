@@ -28,6 +28,7 @@ void add_channel(sqlite3 *db, Channel channel) {
 
   if (rc != SQLITE_OK){fprintf(stderr, "ERROR %s", err);}
   /* else {printf("succesfully done\n");} */
+	sqlite3_free(sql);
 
 	if (channel.contents_len) {
 		for (int i = 0; i < channel.contents_len; i++){
@@ -112,9 +113,10 @@ void add_image_data(sqlite3 *db, ImageData image, int id){
 
   char *err = 0;
   int rc = sqlite3_exec(db, sql, 0, 0, &err);
-	sqlite3_free(sql);
+
 
   if (rc != SQLITE_OK){fprintf(stderr, "ERROR: %d\n %s\n\nSQLITE\n%s\n\n", id, err, sql);}
+	sqlite3_free(sql);
   /* else {printf("succesfully done block\n");} */
 
   free(err);
@@ -140,6 +142,7 @@ int channel_exists(sqlite3 *db, char* slug){
 		printf("EXISTS FOUND:\n %-5d%-25s\n", id, slug);
 		printf("-----------------------------------------------------\n");
   }
+	sqlite3_free(sql);
 
 	return count;
 }
@@ -184,14 +187,23 @@ SimpleBlockList channel_blocks(sqlite3 *db, int id){
 		};
 
 		blocks.blocks[count].id = id;
-		blocks.blocks[count].title = malloc(strlen(title));
+		int len = strlen(title);
+		blocks.blocks[count].title = malloc(sizeof(char) * len+1);
 		strcpy(blocks.blocks[count].title, title);
+		blocks.blocks[count].title[len] = '\0';
 
-		blocks.blocks[count].content = malloc(strlen(content));
+		len = strlen(content);
+		blocks.blocks[count].content = malloc(sizeof(char) * len+1);
 		strcpy(blocks.blocks[count].content, content);
+		blocks.blocks[count].content[len] = '\0';
 
-		/* printf("FOUND: %-5d%-25s\n", blocks.blocks[count].id, blocks.blocks[count].title); */
-		/* printf("-----------------------------------------------------\n"); */
+		if (id == 31555948) {
+			printf("--------------------------");
+			printf("AFTER MALLOC");
+			printf("--------------------------");
+			printf("\n\n%s\n\n", blocks.blocks[count].content);
+			printf("-------------------------- \n");
+		};
 
 		count++;
 		if (count > malloced) {
