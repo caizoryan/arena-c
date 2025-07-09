@@ -63,12 +63,6 @@ void process_multiple_channels(char *slugs[], int len, sqlite3 *db){
 }
 void pull(int argc, char** argv, sqlite3 *db);
 
-/* notes-unthought */
-/* list-are-na-gists */
-/* journal-wandering */
-/* research-convivial-forms */
-/* neon-genesis-evangelion-n8th7zgu0w4 */
-
 string_list process_slugs(char* str){
 	string_list list = read_into_slugs(str);
 

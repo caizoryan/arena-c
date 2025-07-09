@@ -13,12 +13,11 @@ void add_user(sqlite3 *db, User user);
 void add_image_data(sqlite3 *db, ImageData image, int id);
 
 void add_channel(sqlite3 *db, Channel channel) {
-  char sql[2048];
-  sprintf(sql,
+  char* sql = sqlite3_mprintf(
 			"INSERT OR REPLACE INTO channel "
 			"(id, title, slug, length, user_id, status, created_at, updated_at) "
       "VALUES "
-			"(%d, %s, %s, %d, %d, %s, %s, %s)",
+			"(%d, '%q', %q, %d, %d, %q, %q, %q)",
 					channel.id, channel.title, channel.slug,
 					channel.length, channel.user_id, channel.status,
 					channel.created_at, channel.updated_at
@@ -46,7 +45,7 @@ void add_block(sqlite3 *db, Block block) {
 			"INSERT OR REPLACE INTO block "
 			"(id, title, class, base_class, content) "
       "VALUES "
-			"(%d, %q, %q, %q, '%q')",
+			"(%d, '%q', %q, %q, '%q')",
 					block.id, block.title, block._class,
 					block.base_class, block.content);
 
@@ -163,7 +162,7 @@ SimpleBlockList channel_blocks(sqlite3 *db, int id){
 	int count = 0;
 	SimpleBlockList blocks;
 
-	int malloced = 10;
+	int malloced = 100;
 	blocks.blocks = malloc(sizeof(SimpleBlock) * malloced);
 
   while((rc = sqlite3_step(stmt)) == SQLITE_ROW){

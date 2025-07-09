@@ -10,6 +10,8 @@ Block* parse_contents(cJSON* channel, int size, int parent_id);
 User* parse_user(cJSON* channel);
 ImageData* parse_image_data(cJSON* block);
 
+char* json_str_copy(cJSON* json);
+
 Channel parse_channel(ChannelRequest *request){
     Channel channel;
     char *parsable = request->data.response;
@@ -19,7 +21,10 @@ Channel parse_channel(ChannelRequest *request){
 		// TODO: make sure data parsed properly
 		// TODO: Remove quotes from cJSON_Print when processing
     channel.slug = cJSON_Print(cJSON_GetObjectItem(data, "slug"));
-    channel.title = cJSON_Print(cJSON_GetObjectItem(data, "title"));
+
+		cJSON* title_json = cJSON_GetObjectItem(data, "title");
+		channel.title = json_str_copy(title_json);
+
     channel.status = cJSON_Print(cJSON_GetObjectItem(data, "status"));
     channel.updated_at = cJSON_Print(cJSON_GetObjectItem(data, "updated_at"));
     channel.created_at = cJSON_Print(cJSON_GetObjectItem(data, "created_at"));
@@ -59,23 +64,14 @@ Block* parse_contents(cJSON* channel, int size, int parent_id){
 			blocks[i].id = atoi(id);
 			free(id);
 
-			blocks[i].title = cJSON_Print(cJSON_GetObjectItem(item, "title"));
+			cJSON* title_json = cJSON_GetObjectItem(item, "title");
+			blocks[i].title = json_str_copy(title_json);
+
 			blocks[i]._class = cJSON_Print(cJSON_GetObjectItem(item, "class"));
 			blocks[i].base_class = cJSON_Print(cJSON_GetObjectItem(item, "base_class"));
 
 			cJSON* content_json = cJSON_GetObjectItem(item, "content");
-			char* content;
-			if (cJSON_IsString(content_json)){
-				content = content_json->valuestring;
-				int len = strlen(content);
-				blocks[i].content = malloc(len);
-				strcpy(blocks[i].content, content);
-			}
-
-			else {
-				blocks[i].content = malloc(3);
-				strcpy(blocks[i].content, "");
-			}
+			blocks[i].content = json_str_copy(content_json);
 
 			blocks[i].user = parse_user(item);
 			blocks[i].image = parse_image_data(item);
@@ -93,6 +89,26 @@ Block* parse_contents(cJSON* channel, int size, int parent_id){
 
 		return blocks;
 }
+
+char* json_str_copy(cJSON* json){
+	char* content = NULL;
+	char* dest = NULL;
+	if (cJSON_IsString(json)){
+		content = json->valuestring;
+		dest = malloc(strlen(content)+1);
+		strcpy(dest, content);
+		dest[strlen(content)] = '\0';
+	}
+
+	else {
+		dest = malloc(3);
+		strcpy(dest, "");
+		dest[2] = '\0';
+	}
+
+	return dest;
+}
+
 User* parse_user(cJSON* channel){
 	cJSON* user_json = cJSON_GetObjectItem(channel, "user");
 	User* user = malloc(sizeof(User));
