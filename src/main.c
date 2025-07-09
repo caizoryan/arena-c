@@ -133,7 +133,7 @@ int main(int argc, char **argv) {
 		else if (!strcmp(cmd, "mount")){
 			printf("CMD is mount");
 			string_list list = process_slugs(argv[2]);
-			char* directory = "./mount";
+			char* root_dir = "./mount";
 
 			// check if there is a dir supplied
 			if (argc > 3) {
@@ -148,18 +148,69 @@ int main(int argc, char **argv) {
 				printf("------------------------------------------------------:\n\n");
 			}
 
-			for(int i = 0; i<list.len;i++){
-				printf("mounting: \t%s/%s\n", directory, list.list[i]);
+			// ---------------
+			// CHECK IF ROOT DIR EXITS
+			// ---------------
+			struct stat root_dir_check;
+			if (stat(root_dir, &root_dir_check) < 0) {
+				printf("%s DOESNT exist\n", root_dir);
+				int rc = mkdir(root_dir, 0700);
+				if (rc < 0) {printf("Error Root Dir %s\n", root_dir);}
+			}
 
-				// check if exits in db
+			for(int i = 0; i<list.len;i++){
+				printf("mounting: \t%s/%s\n", root_dir, list.list[i]);
+
+				// ---------------
+				// CHECK IF EXITS IN DB
+				// ---------------
 				int exists = channel_exists(db, list.list[i]);
-				if (exists) {printf("%s, exists", list.list[i]);}
+				if (exists) {printf("%s, exists\n", list.list[i]);}
 				else {printf("\nchannel doesn't exist \n"); continue;}
 				
-				// make directory
+				// ---------------
+				// MAKE DIRECTORY
+				// ---------------
+				// check if dir exists
+				struct stat dir_check;
+				char dir[2048];
+				sprintf(dir, "%s/%s", root_dir, list.list[i]);
 
+				if (stat(argv[3], &dir_check) < 0) {
+					int rc = mkdir(dir, 0700);
+					if (rc < 0) {
+						printf("Error making %s\n", dir);
+						continue;
+					}
+				}
+
+				else {
+					printf("%s: DIRECTORY ALREADY EXISTS, CANNOT MOUNT\n", dir);
+					continue;
+				}
 
 				// get all the blocks
+				printf("Getting %d\n", exists);
+				SimpleBlockList blocks = channel_blocks(db, exists);
+
+				for (int bb = 0; bb < blocks.len; bb++){
+					SimpleBlock block = blocks.blocks[bb];
+
+					if (!block.id) continue;
+					if (block.id == 31555948) {
+						printf("--------------------------");
+						printf("\n\n%s\n\n", block.content);
+						printf("-------------------------- \n");
+					};
+					// check if it is a text block
+					char filename[2048];
+					sprintf(filename, "%s/%d - %s.txt",dir, block.id, block.title);
+					/* printf("Writing: %s\n", filename); */
+					FILE* fptr = fopen(filename, "w"); 
+					fprintf(fptr, "%s", block.content);
+					fclose(fptr);
+				}
+
 				// for each text block make a file in format:
 				// [id] - [title].md
 				// dump all the content into it

@@ -1,6 +1,7 @@
 #include "sqlite.h"
 #include "channel.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // TODO: Add enum return codes for these functions
@@ -133,14 +134,73 @@ int channel_exists(sqlite3 *db, char* slug){
 	int count = 0;
 
   while((rc = sqlite3_step(stmt)) == SQLITE_ROW){
-		count++;
 		int id = sqlite3_column_int(stmt, 0);
+		count = id;
 		char *slug= (char *)sqlite3_column_text(stmt, 2);
-		printf("FOUND: %-5d%-25s\n", id, slug);
+		printf("-----------------------------------------------------\n");
+		printf("EXISTS FOUND:\n %-5d%-25s\n", id, slug);
 		printf("-----------------------------------------------------\n");
   }
 
 	return count;
+}
+
+
+SimpleBlockList channel_blocks(sqlite3 *db, int id){
+  sqlite3_stmt *stmt; 
+
+  char *sql = sqlite3_mprintf
+		("SELECT block.id, block.title, block.content FROM connections "
+		 "INNER JOIN block ON connections.block_id = block.id "
+		 "WHERE connections.parent_id = %d", id);
+
+  int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+
+  if (rc != SQLITE_OK){
+		fprintf(stderr, "ERROr ofc...\n");
+  }
+
+	int count = 0;
+	SimpleBlockList blocks;
+
+	int malloced = 10;
+	blocks.blocks = malloc(sizeof(SimpleBlock) * malloced);
+
+  while((rc = sqlite3_step(stmt)) == SQLITE_ROW){
+		int id = sqlite3_column_int(stmt, 0);
+		char *title = (char *)sqlite3_column_text(stmt, 1);
+		char *content = (char *)sqlite3_column_text(stmt, 2);
+
+		if (id == 31555948) {
+			printf("--------------------------");
+			printf("PAY ATTENTION");
+			printf("--------------------------");
+			printf("\n\n%s\n\n", content);
+			printf("-------------------------- \n");
+		};
+
+		blocks.blocks[count].id = id;
+		blocks.blocks[count].title = malloc(strlen(title));
+		strcpy(blocks.blocks[count].title, title);
+
+		blocks.blocks[count].content = malloc(strlen(content));
+		strcpy(blocks.blocks[count].content, content);
+
+		/* printf("FOUND: %-5d%-25s\n", blocks.blocks[count].id, blocks.blocks[count].title); */
+		/* printf("-----------------------------------------------------\n"); */
+
+		count++;
+		if (count > malloced) {
+			printf("remallocing...\n");
+			malloced *= 2;
+			SimpleBlock *ptr = realloc(blocks.blocks, sizeof(SimpleBlock)*malloced);
+			blocks.blocks = ptr;
+		}
+		// When count goes above malloced, realloc
+  }
+
+	blocks.len = count;
+	return blocks;
 }
 
 void list_channel(sqlite3 *db) {

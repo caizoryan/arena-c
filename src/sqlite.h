@@ -14,4 +14,17 @@ void add_channel(sqlite3 *db, Channel channel);
 
 int channel_exists(sqlite3 *db, char* slug);
 
+typedef struct {
+	int id;
+	char* title;
+	char* content;
+} SimpleBlock;
+
+typedef struct {
+	int len;
+	SimpleBlock* blocks;
+} SimpleBlockList;
+
+SimpleBlockList channel_blocks(sqlite3 *db, int id);
+
 #endif
