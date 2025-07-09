@@ -12,4 +12,6 @@ sqlite3 *setup_db();
 void list_channel(sqlite3 *db);
 void add_channel(sqlite3 *db, Channel channel);
 
+int channel_exists(sqlite3 *db, char* slug);
+
 #endif

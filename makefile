@@ -4,3 +4,6 @@ build: $(SOURCES)
 
 clean: todo.db
 	rm todo.db && touch todo.db && sqlite3 todo.db '.read setup.sql'
+
+cleanbuild: $(SOURCES) todo.db
+	rm todo.db && touch todo.db && sqlite3 todo.db '.read setup.sql' && make

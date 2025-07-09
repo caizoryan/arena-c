@@ -121,6 +121,28 @@ void add_image_data(sqlite3 *db, ImageData image, int id){
 
 }
 
+int channel_exists(sqlite3 *db, char* slug){
+  sqlite3_stmt *stmt; 
+  char *sql = sqlite3_mprintf("select * from channel where slug = '%q'", slug);
+  int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+
+  if (rc != SQLITE_OK){
+		fprintf(stderr, "ALL HELL HAS BROKEN LOOSE\n");
+  }
+
+	int count = 0;
+
+  while((rc = sqlite3_step(stmt)) == SQLITE_ROW){
+		count++;
+		int id = sqlite3_column_int(stmt, 0);
+		char *slug= (char *)sqlite3_column_text(stmt, 2);
+		printf("FOUND: %-5d%-25s\n", id, slug);
+		printf("-----------------------------------------------------\n");
+  }
+
+	return count;
+}
+
 void list_channel(sqlite3 *db) {
   sqlite3_stmt *stmt; 
   const char *sql = "select * from channel;";

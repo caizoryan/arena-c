@@ -109,18 +109,17 @@ User* parse_user(cJSON* channel){
 	return user;
 }
 
+void clean_block(Block block);
 ImageData* parse_image_data(cJSON* block){
 	cJSON* image_json = cJSON_GetObjectItem(block, "image");
-	/* char* idddd = cJSON_Print(cJSON_GetObjectItem(block, "id")); */
-	/* char* class_json = cJSON_Print(cJSON_GetObjectItem(block, "class")); */
-	ImageData* image = malloc(sizeof(ImageData));
+	ImageData* image;
 
 	if (cJSON_IsNull(image_json) || image_json == NULL) {
-		free(image);
 		image = NULL;
 	}
 
 	else {
+		image = malloc(sizeof(ImageData));
 		image->content_type = cJSON_Print(cJSON_GetObjectItem(image_json, "content_type"));
 		image->filename = cJSON_Print(cJSON_GetObjectItem(image_json, "filename"));
 		image->display_url = cJSON_Print(cJSON_GetObjectItem(cJSON_GetObjectItem(image_json, "display"), "url"));
@@ -194,33 +193,10 @@ void clean_channel(Channel channel){
 
 		for(int i = 0; i < channel.contents_len; i++){
 			Block block = channel.contents[i];
-			free(block.title);
-			free(block._class);
-			free(block.base_class);
-			free(block.content);
-
-			free(block.user->username);
-			free(block.user->avatar);
-			free(block.user->created_at);
-			free(block.user->slug);
-			free(block.user->first_name);
-			free(block.user->last_name);
-			free(block.user);
-
-			if (block.image != NULL) {
-				free(block.image->content_type);
-				free(block.image->filename);
-				free(block.image->display_url);
-				free(block.image->thumb_url);
-				free(block.image->large_url);
-				free(block.image->original_url);
-				free(block.image->square_url);
-				free(block.image);
-			}
-
+			clean_block(block);
 		}
-
 		free(channel.contents);
+
 		free(channel.user->username);
 		free(channel.user->avatar);
 		free(channel.user->created_at);
@@ -228,4 +204,30 @@ void clean_channel(Channel channel){
 		free(channel.user->first_name);
 		free(channel.user->last_name);
 		free(channel.user);
+}
+
+void clean_block(Block block){
+		free(block.title);
+		free(block._class);
+		free(block.base_class);
+		free(block.content);
+
+		free(block.user->username);
+		free(block.user->avatar);
+		free(block.user->created_at);
+		free(block.user->slug);
+		free(block.user->first_name);
+		free(block.user->last_name);
+		free(block.user);
+
+		if (block.image != NULL) {
+			free(block.image->content_type);
+			free(block.image->filename);
+			free(block.image->display_url);
+			free(block.image->thumb_url);
+			free(block.image->large_url);
+			free(block.image->original_url);
+			free(block.image->square_url);
+			free(block.image);
+		}
 }
