@@ -170,6 +170,11 @@ SimpleBlockList channel_blocks(sqlite3 *db, int id){
 		char *title = (char *)sqlite3_column_text(stmt, 1);
 		char *content = (char *)sqlite3_column_text(stmt, 2);
 
+		// this is sort of a problem block... prints fine
+		// but [ONLY SOMETIMES] when is written, will write out :
+		// â€ Ã¢Â· lowiPÂ¡Â®
+		// instead... have to figure it out
+
 		if (id == 31555948) {
 			printf("--------------------------");
 			printf("PAY ATTENTION");
