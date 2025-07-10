@@ -1,4 +1,45 @@
-# <2025-07-05 Fri> Breakdown:
+# <2025-10-05 Thu> Lots of stuff:
+### Updates/log
+Added loads of new stuff.
+- Added table for image and user, will soon add attachment and sources
+- Added connections table
+- Fixed some json parsing and string processing issues
+- Cleaned up repo
+- Added 'make clean' in makefile
+- added get blocks for a channel
+- added cli commands like pull, mount, check, list
+
+##### pull
+Pull will download channel into sqlite db
+- Can pull slugs given a comma, space, newline separated list.
+- Can read from cli, or from a file
+
+##### mount
+Mount given a slug (that exists in db) will make a folder for the channel, and add text blocks as .txt files into the folder.
+- gets blocks from channel (title, id, content, class)
+- checks for folder, and makes it
+- creates file
+- marks mounted_at in db
+
+##### check
+Check will go through folders in root directory and parse files. Files that get parsed as blocks will be checked against file modified at from STAT and mounted at from DB. Based on this they can be marked as modified to be updated.
+- reads directory
+- parses file for block id
+- reads file modified
+- get mounted_at attribute from db
+- compare and report for update
+
+
+### Funky diaries
+Was having a hard time with utf-8 strings, or so I thought. Whenever I tried processing and adding a channel with hindi text in blocks I would get segmentation fault. I went out for a walk, came back and realised it was faulting cause the channel was private and the request I got back wasn't 200. I don't have checks for that, so will add that!
+
+### Next up
+- Parse title from file
+- Download images, attachments and media
+- Update blocks after modified
+- Add max requests per minute
+
+# <2025-07-05 Fri> Return of the dumbass:
 ### Return
 Turns out. Leaks wasn't working becuase it was segfaulting! And it just failed to inform me of this. If you run the program normally, it would let me know, however I assumed leaks would warn as well. Anyways, I figured out the issues, also learned how to use a debugger (lldb), debuggers are awesome! Time to start using them with javascript too...
 
