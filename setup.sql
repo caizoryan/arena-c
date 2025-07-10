@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS block (
     title TEXT,
     class TEXT NOT NULL,
     content TEXT NOT NULL,
-    base_class TEXT NOT NULL
+    base_class TEXT NOT NULL,
+		mounted_at INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS connections (
@@ -69,7 +70,6 @@ CREATE TABLE IF NOT EXISTS attachments (
     file_size_display TEXT NOT NULL,
     content_type TEXT NOT NULL,
     extension TEXT NOT NULL,
-    url TEXT NOT NULL,
-    FOREIGN KEY (id) REFERENCES block(id)
+    url TEXT NOT NULL
 );
 

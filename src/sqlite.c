@@ -1,16 +1,11 @@
 #include "sqlite.h"
 #include "channel.h"
-#include "main.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 // TODO: Add enum return codes for these functions
-
-void add_block_connection(sqlite3 *db, Block block);
-void add_block(sqlite3 *db, Block block);
-void add_user(sqlite3 *db, User user);
-void add_image_data(sqlite3 *db, ImageData image, int id);
 
 void add_channel(sqlite3 *db, Channel channel) {
   char* sql = sqlite3_mprintf(
@@ -83,7 +78,6 @@ void add_user(sqlite3 *db, User user) {
 
   free(err);
 }
-
 void add_block_connection(sqlite3 *db, Block block){
   char sql[2048];
   sprintf(sql,
@@ -138,21 +132,19 @@ int channel_exists(sqlite3 *db, char* slug){
 		int id = sqlite3_column_int(stmt, 0);
 		count = id;
 		char *slug= (char *)sqlite3_column_text(stmt, 2);
-		printf("-----------------------------------------------------\n");
-		printf("EXISTS FOUND:\n %-5d%-25s\n", id, slug);
-		printf("-----------------------------------------------------\n");
+		/* printf("-----------------------------------------------------\n"); */
+		/* printf("EXISTS FOUND:\n %-5d%-25s\n", id, slug); */
+		/* printf("-----------------------------------------------------\n"); */
   }
 	sqlite3_free(sql);
 
 	return count;
 }
-
-
 SimpleBlockList channel_blocks(sqlite3 *db, int id){
   sqlite3_stmt *stmt; 
 
   char *sql = sqlite3_mprintf
-		("SELECT block.id, block.title, block.content FROM connections "
+		("SELECT block.id, block.title, block.content, block.class FROM connections "
 		 "INNER JOIN block ON connections.block_id = block.id "
 		 "WHERE connections.parent_id = %d", id);
 
@@ -172,6 +164,7 @@ SimpleBlockList channel_blocks(sqlite3 *db, int id){
 		int id = sqlite3_column_int(stmt, 0);
 		char *title = (char *)sqlite3_column_text(stmt, 1);
 		char *content = (char *)sqlite3_column_text(stmt, 2);
+		char *class = (char *)sqlite3_column_text(stmt, 3);
 
 		// this is sort of a problem block... prints fine
 		// but [ONLY SOMETIMES] when is written, will write out :
@@ -187,6 +180,7 @@ SimpleBlockList channel_blocks(sqlite3 *db, int id){
 		};
 
 		blocks.blocks[count].id = id;
+
 		int len = strlen(title);
 		blocks.blocks[count].title = malloc(sizeof(char) * len+1);
 		strcpy(blocks.blocks[count].title, title);
@@ -195,7 +189,16 @@ SimpleBlockList channel_blocks(sqlite3 *db, int id){
 		len = strlen(content);
 		blocks.blocks[count].content = malloc(sizeof(char) * len+1);
 		strcpy(blocks.blocks[count].content, content);
+
+		// this should probably not be needed
 		blocks.blocks[count].content[len] = '\0';
+
+		len = strlen(class);
+		blocks.blocks[count]._class = malloc(sizeof(char) * len+1);
+		strcpy(blocks.blocks[count]._class, class);
+
+		// this should probably not be needed
+		blocks.blocks[count]._class[len] = '\0';
 
 		if (id == 31555948) {
 			printf("--------------------------");
@@ -217,6 +220,38 @@ SimpleBlockList channel_blocks(sqlite3 *db, int id){
 
 	blocks.len = count;
 	return blocks;
+}
+
+void mark_block_mounted(sqlite3 *db, int id){
+	time_t t = time(NULL);
+	char* sql = sqlite3_mprintf("UPDATE block SET mounted_at = %ld WHERE ID = %d; ", t, id);
+
+  char *err = 0;
+  int rc = sqlite3_exec(db, sql, 0, 0, &err);
+
+  if (rc != SQLITE_OK){fprintf(stderr, "ERROR: %d\n %s\n\nSQLITE\n%s\n\n", id, err, sql);}
+	sqlite3_free(sql);
+
+  free(err);
+}
+time_t get_block_mounted(sqlite3 *db, int id){
+  sqlite3_stmt *stmt;
+  char *sql = sqlite3_mprintf("select mounted_at from block where id = %d;", id);
+  int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+
+  if (rc != SQLITE_OK){
+		fprintf(stderr, "ALL HELL HAS BROKEN LOOSE\n");
+  }
+
+	int mounted_at = 0;
+	/* printf("DAWG: %d\n", mounted_at); */
+
+  while((rc = sqlite3_step(stmt)) == SQLITE_ROW){
+		mounted_at = sqlite3_column_int(stmt, 0);
+  }
+
+	sqlite3_free(sql);
+	return mounted_at;
 }
 
 void list_channel(sqlite3 *db) {

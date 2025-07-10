@@ -6,11 +6,24 @@
 #include <string.h>
 #include "arena.h"
 
-Block* parse_contents(cJSON* channel, int size, int parent_id);
-User* parse_user(cJSON* channel);
-ImageData* parse_image_data(cJSON* block);
+char* json_str_copy(cJSON* json){
+	char* content = NULL;
+	char* dest = NULL;
+	if (cJSON_IsString(json)){
+		content = json->valuestring;
+		dest = malloc(strlen(content)+1);
+		strcpy(dest, content);
+		dest[strlen(content)] = '\0';
+	}
 
-char* json_str_copy(cJSON* json);
+	else {
+		dest = malloc(3);
+		strcpy(dest, "");
+		dest[2] = '\0';
+	}
+
+	return dest;
+}
 
 Channel parse_channel(ChannelRequest *request){
     Channel channel;
@@ -89,26 +102,6 @@ Block* parse_contents(cJSON* channel, int size, int parent_id){
 
 		return blocks;
 }
-
-char* json_str_copy(cJSON* json){
-	char* content = NULL;
-	char* dest = NULL;
-	if (cJSON_IsString(json)){
-		content = json->valuestring;
-		dest = malloc(strlen(content)+1);
-		strcpy(dest, content);
-		dest[strlen(content)] = '\0';
-	}
-
-	else {
-		dest = malloc(3);
-		strcpy(dest, "");
-		dest[2] = '\0';
-	}
-
-	return dest;
-}
-
 User* parse_user(cJSON* channel){
 	cJSON* user_json = cJSON_GetObjectItem(channel, "user");
 	User* user = malloc(sizeof(User));
@@ -137,8 +130,6 @@ User* parse_user(cJSON* channel){
 
 	return user;
 }
-
-void clean_block(Block block);
 ImageData* parse_image_data(cJSON* block){
 	cJSON* image_json = cJSON_GetObjectItem(block, "image");
 	ImageData* image;
@@ -234,7 +225,6 @@ void clean_channel(Channel channel){
 		free(channel.user->last_name);
 		free(channel.user);
 }
-
 void clean_block(Block block){
 		free(block.title);
 		free(block._class);

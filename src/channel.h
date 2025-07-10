@@ -73,5 +73,10 @@ typedef struct {
 Channel parse_channel(ChannelRequest *request);
 ChannelRequest *construct_channel_request(char *slug);
 void clean_channel(Channel channel);
+Block* parse_contents(cJSON* channel, int size, int parent_id);
+User* parse_user(cJSON* channel);
+ImageData* parse_image_data(cJSON* block);
+char* json_str_copy(cJSON* json);
+void clean_block(Block block);
 
 #endif

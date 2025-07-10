@@ -2,9 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 #include <getopt.h>
 #include <sys/stat.h>
+#include <dirent.h> 
 
 #include "channel.h"
 #include "sqlite.h"
@@ -19,8 +21,14 @@ typedef struct  {
 	char* list[1024];
 } string_list;
 
+char* root_dir = "./mount";
+
 string_list read_into_slugs(char* slugs);
 string_list process_slugs(char* str);
+void pull(int argc, char** argv, sqlite3 *db);
+void mount(int argc, char** argv, sqlite3 *db);
+void check(int argc, char** argv, sqlite3 *db);
+void check_channel_modified(sqlite3 *db, char* location);
 
 void process_multiple_channels(char *slugs[], int len, sqlite3 *db){
 	/* init a multi stack */
@@ -61,7 +69,6 @@ void process_multiple_channels(char *slugs[], int len, sqlite3 *db){
 
 	curl_multi_cleanup(multi_handle);
 }
-void pull(int argc, char** argv, sqlite3 *db);
 
 string_list process_slugs(char* str){
 	string_list list = read_into_slugs(str);
@@ -111,6 +118,148 @@ void pull(int argc, char** argv, sqlite3 *db){
 		free(list.list[i]);
 	}
 }
+void mount(int argc, char** argv, sqlite3 *db){
+	printf("CMD is mount");
+	string_list list = process_slugs(argv[2]);
+	// check if there is a dir supplied
+	if (argc > 3) {
+		struct stat myFile;
+		if (stat(argv[3], &myFile) < 0) printf("%s: Doesnt exist\n", argv[3]);
+		else if (!S_ISDIR(myFile.st_mode)) printf("%s: is a file\n", argv[3]);
+		else {}
+	}
+
+	else {
+		printf("NO DIRECTORY, MOUNTING HERE\n");
+		printf("------------------------------------------------------:\n\n");
+	}
+
+	// ---------------
+	// CHECK IF ROOT DIR EXITS
+	// ---------------
+	struct stat root_dir_check;
+	if (stat(root_dir, &root_dir_check) < 0) {
+		printf("%s DOESNT exist\n", root_dir);
+		int rc = mkdir(root_dir, 0700);
+		if (rc < 0) {printf("Error Root Dir %s\n", root_dir);}
+	}
+
+	for(int i = 0; i<list.len;i++){
+		// ---------------
+		// CHECK IF EXITS IN DB
+		// ---------------
+		int channel_id = channel_exists(db, list.list[i]);
+		if (!channel_id) {printf("\nchannel doesn't exist \n"); goto free;}
+
+		// ---------------
+		// MAKE DIRECTORY
+		// ---------------
+		// check if dir exists
+		struct stat dir_check;
+		char dir[2048];
+		sprintf(dir, "%s/%s", root_dir, list.list[i]);
+
+		if (stat(argv[3], &dir_check) < 0) {
+			int rc = mkdir(dir, 0700);
+			if (rc < 0) {
+				printf("Error making %s\n", dir);
+				goto free;
+			}
+		}
+
+		else {
+			printf("%s: DIRECTORY ALREADY EXISTS, CANNOT MOUNT\n", dir);
+			goto free;
+		}
+
+		// get all the blocks
+
+		SimpleBlockList blocks = channel_blocks(db, channel_id);
+		for (int bb = 0; bb < blocks.len; bb++){
+			SimpleBlock block = blocks.blocks[bb];
+
+			if (!block.id) goto free;
+			if (block.id == 31555948) {
+				printf("--------------------------");
+				printf("\n\n%s\n\n", block.content);
+				printf("-------------------------- \n");
+			};
+
+			// check if it is a text block
+			if (!strcmp(block._class, "Text")) {
+				// for each text block make a file in format:
+				// [id] - [title].md
+
+				char filename[2048];
+				sprintf(filename, "%s/%d - %s.txt", dir, block.id, block.title);
+				FILE* fptr = fopen(filename, "w"); 
+				fprintf(fptr, "%s", block.content);
+				mark_block_mounted(db, block.id);
+				fclose(fptr);
+			} 
+		}
+
+	free:
+		free(list.list[i]);
+	}
+}
+
+void check_channel_modified(sqlite3 *db, char* location) {
+	DIR *d;
+  struct dirent *dir;
+  d = opendir(location);
+  if (d) {
+    while ((dir = readdir(d)) != NULL) {
+			// ignore first two entries (., ..)
+			if (dir->d_type == DT_REG) {
+
+				char file[4096]; 
+				strcpy(file, location);
+				strcat(file, "/");
+				strcat(file, dir->d_name);
+
+				// probably sanitize? see if in correct format...
+				int block_id = atoi(dir->d_name);
+
+				struct stat fileptr;
+				if (stat(file, &fileptr) == 0) {
+					time_t t = fileptr.st_mtime;
+					time_t mod = get_block_mounted(db, block_id);
+					if (t != mod) { printf("%d: \t modified\n", block_id); }
+				}
+			}
+    }
+
+    closedir(d);
+  }
+}
+
+void check(int argc, char** argv, sqlite3 *db){
+	DIR *d;
+  struct dirent *dir;
+  d = opendir(root_dir);
+	int ignore = 2;
+
+  if (d) {
+    while ((dir = readdir(d)) != NULL) {
+			// ignore first two entries (., ..)
+			if (ignore) {ignore--;continue;}
+
+			if (dir->d_type == DT_DIR) {
+				char location[4096]; 
+				strcpy(location, root_dir);
+				strcat(location, "/");
+				strcat(location, dir->d_name);
+
+				check_channel_modified(db, location);
+			}
+			/* else printf("%s\n", dir->d_name); */
+    }
+
+    closedir(d);
+  }
+
+}
 
 int main(int argc, char **argv) {
   sqlite3 *db = setup_db();
@@ -119,110 +268,17 @@ int main(int argc, char **argv) {
 	if (argc > 2) {
 		char* cmd = argv[1];
 
-		if (!strcmp(cmd, "pull")){
-			pull(argc, argv, db);
-		}
-
-		else if (!strcmp(cmd, "list")){
+		if (!strcmp(cmd, "list")){
 			printf("------------------------------------------------------:\n");
 			printf("CHANNELS:\n");
 			printf("------------------------------------------------------:\n");
 			list_channel(db);
 		}
 
-		else if (!strcmp(cmd, "mount")){
-			printf("CMD is mount");
-			string_list list = process_slugs(argv[2]);
-			char* root_dir = "./mount";
-
-			// check if there is a dir supplied
-			if (argc > 3) {
-				struct stat myFile;
-				if (stat(argv[3], &myFile) < 0) printf("%s: Doesnt exist\n", argv[3]);
-				else if (!S_ISDIR(myFile.st_mode)) printf("%s: is a file\n", argv[3]);
-				else {}
-			}
-
-			else {
-				printf("NO DIRECTORY, MOUNTING HERE\n");
-				printf("------------------------------------------------------:\n\n");
-			}
-
-			// ---------------
-			// CHECK IF ROOT DIR EXITS
-			// ---------------
-			struct stat root_dir_check;
-			if (stat(root_dir, &root_dir_check) < 0) {
-				printf("%s DOESNT exist\n", root_dir);
-				int rc = mkdir(root_dir, 0700);
-				if (rc < 0) {printf("Error Root Dir %s\n", root_dir);}
-			}
-
-			for(int i = 0; i<list.len;i++){
-				printf("mounting: \t%s/%s\n", root_dir, list.list[i]);
-
-				// ---------------
-				// CHECK IF EXITS IN DB
-				// ---------------
-				int exists = channel_exists(db, list.list[i]);
-				if (exists) {printf("%s, exists\n", list.list[i]);}
-				else {printf("\nchannel doesn't exist \n"); goto free;}
-				
-				// ---------------
-				// MAKE DIRECTORY
-				// ---------------
-				// check if dir exists
-				struct stat dir_check;
-				char dir[2048];
-				sprintf(dir, "%s/%s", root_dir, list.list[i]);
-
-				if (stat(argv[3], &dir_check) < 0) {
-					int rc = mkdir(dir, 0700);
-					if (rc < 0) {
-						printf("Error making %s\n", dir);
-						goto free;
-					}
-				}
-
-				else {
-					printf("%s: DIRECTORY ALREADY EXISTS, CANNOT MOUNT\n", dir);
-					goto free;
-				}
-
-				// get all the blocks
-				printf("Getting %d\n", exists);
-				SimpleBlockList blocks = channel_blocks(db, exists);
-
-				for (int bb = 0; bb < blocks.len; bb++){
-					SimpleBlock block = blocks.blocks[bb];
-
-					if (!block.id) goto free;
-					if (block.id == 31555948) {
-						printf("--------------------------");
-						printf("\n\n%s\n\n", block.content);
-						printf("-------------------------- \n");
-					};
-					// check if it is a text block
-					char filename[2048];
-					sprintf(filename, "%s/%d - %s.txt",dir, block.id, block.title);
-					/* printf("Writing: %s\n", filename); */
-					FILE* fptr = fopen(filename, "w"); 
-					fprintf(fptr, "%s", block.content);
-					fclose(fptr);
-				}
-
-				// for each text block make a file in format:
-				// [id] - [title].md
-				// dump all the content into it
-
-			free:
-				free(list.list[i]);
-			}
-		}
-
-		else if (!strcmp(cmd, "push")){
-			printf("CMD is push");
-		}
+		else if (!strcmp(cmd, "pull")) pull(argc, argv, db);
+		else if (!strcmp(cmd, "mount")) mount(argc, argv, db);
+		else if (!strcmp(cmd, "check")) check(argc, argv, db);
+		else if (!strcmp(cmd, "push")) printf("CMD is push");
 	}
 
   /* list_channel(db); */
