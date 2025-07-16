@@ -25,6 +25,7 @@ char* root_dir = "./mount";
 
 string_list read_into_slugs(char* slugs);
 string_list process_slugs(char* str);
+
 void pull(int argc, char** argv, sqlite3 *db);
 void mount(int argc, char** argv, sqlite3 *db);
 void check(int argc, char** argv, sqlite3 *db);
@@ -233,7 +234,6 @@ void check_channel_modified(sqlite3 *db, char* location) {
     closedir(d);
   }
 }
-
 void check(int argc, char** argv, sqlite3 *db){
 	DIR *d;
   struct dirent *dir;
@@ -287,7 +287,6 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-/* char** */
 string_list read_into_slugs(char* slugs){
 	// go thru the string and read into an array everytime there is a ',' ' ' or '\n'
 	string_list list = {.len = 0};
@@ -326,8 +325,6 @@ string_list read_into_slugs(char* slugs){
 }
 
 // OPTIONS
-
-
 	/* static struct option long_options[] = { */
 	/* 	{"force", no_argument, 0,0}, */
 	/* 	{"file", required_argument, 0,0}, */
