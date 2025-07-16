@@ -8,11 +8,12 @@
 #include <sys/stat.h>
 #include <dirent.h> 
 
+#include "cJSON.h"
 #include "channel.h"
 #include "sqlite.h"
 
 struct ChannelRequestArr {
-		ChannelRequest *buff[128];
+		CurlRequest *buff[128];
 		int len;
 } requests;
 
@@ -234,9 +235,84 @@ void check_channel_modified(sqlite3 *db, char* location) {
     closedir(d);
   }
 }
+
+typedef struct {
+	int id;
+	char* content;
+} UpdateData;
+
+typedef struct {
+	UpdateData* blocks;
+	int len;
+} UpdateList;
+
+UpdateList get_channel_modified_blocks(sqlite3 *db, char* location) {
+	DIR *d;
+  struct dirent *dir;
+  d = opendir(location);
+	UpdateList list;
+	int malloced = 5;
+	list.blocks = malloc(sizeof(UpdateData) * malloced);
+	list.len = 0;
+
+  if (d) {
+    while ((dir = readdir(d)) != NULL) {
+			// ignore first two entries (., ..)
+			if (dir->d_type == DT_REG) {
+
+				char file[4096]; 
+				strcpy(file, location);
+				strcat(file, "/");
+				strcat(file, dir->d_name);
+
+				// probably sanitize? see if in correct format...
+				int block_id = atoi(dir->d_name);
+
+				struct stat fileptr;
+				if (stat(file, &fileptr) == 0) {
+					time_t t = fileptr.st_mtime;
+					time_t mod = get_block_mounted(db, block_id);
+					if (t != mod) {
+						printf("%d: \t %s\t modified\n", block_id, location);
+
+						FILE* file_content;
+
+						file_content = fopen(file, "r");
+						fseek(file_content, 0, SEEK_END);
+						long fsize = ftell(file_content);
+						fseek(file_content, 0, SEEK_SET);  /* same as rewind(f); */
+
+						char *string = malloc(fsize + 1);
+						fread(string, fsize, 1, file_content);
+						fclose(file_content);
+
+						string[fsize] = '\0' ;
+						printf("CONTENT:   %s\n\n", string);
+						list.blocks[list.len].id = block_id;
+						list.blocks[list.len++].content = string;
+
+						if (malloced == list.len) {
+							malloced *= 2;
+							UpdateData *ptr = realloc(list.blocks, sizeof(SimpleBlock)*malloced);
+							list.blocks = ptr;
+						}
+					}
+				}
+			}
+    }
+
+    closedir(d);
+  }
+	return list;
+}
+
 void check(int argc, char** argv, sqlite3 *db){
 	DIR *d;
   struct dirent *dir;
+
+	char* slugs = argv[2];
+	string_list list = process_slugs(slugs);
+
   d = opendir(root_dir);
 	int ignore = 2;
 
@@ -246,12 +322,54 @@ void check(int argc, char** argv, sqlite3 *db){
 			if (ignore) {ignore--;continue;}
 
 			if (dir->d_type == DT_DIR) {
+				// only if dir->d_name is in list
 				char location[4096]; 
 				strcpy(location, root_dir);
 				strcat(location, "/");
 				strcat(location, dir->d_name);
 
 				check_channel_modified(db, location);
+			}
+			/* else printf("%s\n", dir->d_name); */
+    }
+
+    closedir(d);
+  }
+
+}
+void update(int argc, char** argv, sqlite3 *db){
+	DIR *d;
+  struct dirent *dir;
+
+	char* slugs = argv[2];
+	string_list list = process_slugs(slugs);
+
+  d = opendir(root_dir);
+	int ignore = 2;
+
+  if (d) {
+    while ((dir = readdir(d)) != NULL) {
+			// ignore first two entries (., ..)
+			if (ignore) {ignore--;continue;}
+
+			if (dir->d_type == DT_DIR) {
+				// only if dir->d_name is in list
+				char location[4096]; 
+				strcpy(location, root_dir);
+				strcat(location, "/");
+				strcat(location, dir->d_name);
+
+				UpdateList list = get_channel_modified_blocks(db, location);
+				printf("TO UPDATE: \n");
+				for (int i = 0; i < list.len; i++){
+					printf("Block: %d\nContent: \n%s\n", list.blocks[i].id, list.blocks[i].content);
+					CurlRequest *req = construct_update_block_request(list.blocks[i].id, list.blocks[i].content);
+					int res = curl_easy_perform(req->curl);
+
+					cJSON *data = cJSON_Parse(req->data.response);
+					printf("Update Response: %s\n", cJSON_Print(data));
+					// then when success, fetch the block and update sqlite!
+				}
 			}
 			/* else printf("%s\n", dir->d_name); */
     }
@@ -278,7 +396,19 @@ int main(int argc, char **argv) {
 		else if (!strcmp(cmd, "pull")) pull(argc, argv, db);
 		else if (!strcmp(cmd, "mount")) mount(argc, argv, db);
 		else if (!strcmp(cmd, "check")) check(argc, argv, db);
+		else if (!strcmp(cmd, "update")) update(argc, argv, db);
 		else if (!strcmp(cmd, "push")) printf("CMD is push");
+	}
+	else {
+		CurlRequest *req = construct_new_block_request("test-ejghk6g7dyc", "testing if this shit works");
+		int res = curl_easy_perform(req->curl);
+
+    cJSON *data = cJSON_Parse(req->data.response);
+    cJSON *block_id = cJSON_GetObjectItem(data, "id");
+    int id = block_id->valueint;
+
+		CurlRequest *req2 = construct_update_block_request(id, "ass fucker!");
+		res = curl_easy_perform(req2->curl);
 	}
 
   /* list_channel(db); */

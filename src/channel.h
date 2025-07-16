@@ -9,10 +9,16 @@ typedef struct {
 	CURL *curl;
 	struct curl_slist *headers;
 	struct memory data;
-} ChannelRequest;
+} CurlRequest;
+
+typedef struct {
+	CURL *curl;
+	struct curl_slist *headers;
+	struct memory data;
+} AddBlockRequest;
 
 /* size_t cb(char *data, size_t size, size_t nmemb, struct memory *mem); */
-void clean_channel_request(ChannelRequest *req);
+void clean_channel_request(CurlRequest *req);
 
 typedef struct {
 	int id;
@@ -70,9 +76,14 @@ typedef struct {
 } Channel;
 
 
-Channel parse_channel(ChannelRequest *request);
-ChannelRequest *construct_channel_request(char *slug);
+Channel parse_channel(CurlRequest *request);
+
+CurlRequest *construct_channel_request(char *slug);
+CurlRequest *construct_new_block_request(char *channel_slug, char *content);
+CurlRequest *construct_update_block_request(int id, char *content);
+
 void clean_channel(Channel channel);
+
 Block* parse_contents(cJSON* channel, int size, int parent_id);
 User* parse_user(cJSON* channel);
 ImageData* parse_image_data(cJSON* block);

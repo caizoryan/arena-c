@@ -34,7 +34,7 @@ CURL* GETCURL(char *url, struct curl_slist* headers, struct memory *chunk){
 	}
 	return curl;
 }
-CURL* POSTCURL(char *url, struct curl_slist* headers, struct memory *chunk){
+CURL* POSTCURL(char *url, struct curl_slist* headers, char *body, struct memory *chunk){
 	CURL *curl;
 	curl = curl_easy_init();
 
@@ -43,11 +43,16 @@ CURL* POSTCURL(char *url, struct curl_slist* headers, struct memory *chunk){
 		curl_easy_setopt(curl, CURLOPT_URL, url);
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
 
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, -1L);
+
 		// handle writing data
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)chunk);
 	}
+
 	return curl;
 }
+
 void GET(char *url, struct curl_slist* headers, struct memory *chunk){
   CURL *curl;
   CURLcode res;

@@ -25,7 +25,7 @@ char* json_str_copy(cJSON* json){
 	return dest;
 }
 
-Channel parse_channel(ChannelRequest *request){
+Channel parse_channel(CurlRequest *request){
     Channel channel;
     char *parsable = request->data.response;
     cJSON *data = cJSON_Parse(parsable);
@@ -170,7 +170,8 @@ static size_t cb(char *data, size_t size, size_t nmemb, void *userp) {
   return realsize;
 }
 
-ChannelRequest *construct_channel_request(char *slug){
+// move this to arena.c
+CurlRequest *construct_channel_request(char *slug){
     CURL *curl = curl_easy_init();
 
     char url[512] = "https://api.are.na/v2/channels/";
@@ -180,7 +181,7 @@ ChannelRequest *construct_channel_request(char *slug){
     struct memory chunk = { 0 };
     struct curl_slist *headers = json_headers();
 
-    ChannelRequest *request = malloc(sizeof(ChannelRequest));
+    CurlRequest *request = malloc(sizeof(CurlRequest));
     request->curl = curl;
     request->data = chunk;
     request->headers = headers;
@@ -198,8 +199,93 @@ ChannelRequest *construct_channel_request(char *slug){
 
     return request;
 }
+CurlRequest *construct_new_block_request(char *channel_slug, char *content){
+	CURL *curl = curl_easy_init();
 
-void clean_channel_request(ChannelRequest *req){
+	char url[512] = "https://api.are.na/v2/channels/";
+	strcat(url, channel_slug);
+	strcat(url, "/blocks");
+	printf("url: %s\n", url);
+
+	struct memory chunk = { 0 };
+	struct curl_slist *headers = json_headers();
+
+	CurlRequest *request = malloc(sizeof(CurlRequest));
+	request->curl = curl;
+	request->data = chunk;
+	request->headers = headers;
+
+	cJSON *root = NULL;
+	char *json = NULL;
+
+  root = cJSON_CreateObject();
+	cJSON_AddStringToObject(root, "content", content);
+  json = cJSON_PrintUnformatted(root);
+
+	if(curl) {
+		// URL & Headers
+		curl_easy_setopt(curl, CURLOPT_URL, url);
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
+
+		// body
+		printf("body: %s", json);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json);
+		/* curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, -1L); */
+
+		// handle writing data
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cb);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&(request->data));
+	}
+
+
+	return request;
+}
+CurlRequest *construct_update_block_request(int id, char *content){
+	CURL *curl = curl_easy_init();
+
+	char url[512] = "https://api.are.na/v2/blocks/";
+	char id_str[512];
+	sprintf(id_str, "%d", id);
+	strcat(url, id_str);
+
+	printf("url: %s\n", url);
+
+	struct memory chunk = { 0 };
+	struct curl_slist *headers = json_headers();
+
+	CurlRequest *request = malloc(sizeof(CurlRequest));
+	request->curl = curl;
+	request->data = chunk;
+	request->headers = headers;
+
+	cJSON *root = NULL;
+	char *json = NULL;
+
+  root = cJSON_CreateObject();
+	cJSON_AddStringToObject(root, "content", content);
+  json = cJSON_PrintUnformatted(root);
+
+	if(curl) {
+		// URL & Headers
+		curl_easy_setopt(curl, CURLOPT_URL, url);
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT"); /* !!! */
+
+		// body
+		printf("body: %s", json);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json);
+		/* curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, -1L); */
+
+		// handle writing data
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cb);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&(request->data));
+	}
+
+	return request;
+
+}
+
+void clean_channel_request(CurlRequest *req){
     curl_easy_cleanup(req->curl);
     curl_slist_free_all(req->headers);
     free(req->data.response);

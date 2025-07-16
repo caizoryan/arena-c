@@ -263,13 +263,16 @@ void list_channel(sqlite3 *db) {
 		fprintf(stderr, "ALL HELL HAS BROKEN LOOSE");
   }
 
-  printf("%-5s%-25s%s\n", "id", "title", "slug");
+	char format[2048] = "%-5s%-25s%s\n";
+  printf(format, "id", "title", "slug");
   printf("-----------------------------------------------------\n");
   while((rc = sqlite3_step(stmt)) == SQLITE_ROW){
 		int id = sqlite3_column_int(stmt, 0);
 		char *title = (char *)sqlite3_column_text(stmt, 1);
 		char *slug= (char *)sqlite3_column_text(stmt, 2);
-		printf("%-5d%-25s%s\n", id, title, slug);
+
+		char format_[2048] = "%-5d%-25s%s\n";
+		printf(format_, id, title, slug);
 		printf("-----------------------------------------------------\n");
   }
 }
