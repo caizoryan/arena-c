@@ -1,3 +1,5 @@
 *~
-./build
-./todo.db
+build
+todo.db
+src/auth.h
+/mount

@@ -12,11 +12,26 @@ struct curl_slist* json_headers(){
     struct curl_slist* headers = NULL;
     headers = curl_slist_append(headers, "Accept: application/json");
     headers = curl_slist_append(headers, "Content-Type: application/json");
+    /* headers = curl_slist_append(headers, "Content-Type: application/json"); */
     headers = curl_slist_append(headers, "charset: utf-8");
     return headers;
 }
 
 CURL* GETCURL(char *url, struct curl_slist* headers, struct memory *chunk){
+	CURL *curl;
+	curl = curl_easy_init();
+
+	if(curl) {
+		// URL & Headers
+		curl_easy_setopt(curl, CURLOPT_URL, url);
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers); 
+
+		// handle writing data
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)chunk);
+	}
+	return curl;
+}
+CURL* POSTCURL(char *url, struct curl_slist* headers, struct memory *chunk){
 	CURL *curl;
 	curl = curl_easy_init();
 

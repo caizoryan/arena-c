@@ -34,6 +34,8 @@ Check will go through folders in root directory and parse files. Files that get 
 Was having a hard time with utf-8 strings, or so I thought. Whenever I tried processing and adding a channel with hindi text in blocks I would get segmentation fault. I went out for a walk, came back and realised it was faulting cause the channel was private and the request I got back wasn't 200. I don't have checks for that, so will add that!
 
 ### Next up
+- Learn how to do a post json with libcurl
+- Setup testing
 - Parse title from file
 - Download images, attachments and media
 - Update blocks after modified
