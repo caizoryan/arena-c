@@ -7,12 +7,15 @@
 #include "cJSON.h"
 #include "main.h"
 #include "arena.h"
+#include "auth.h"
 
 struct curl_slist* json_headers(){
     struct curl_slist* headers = NULL;
     headers = curl_slist_append(headers, "Accept: application/json");
     headers = curl_slist_append(headers, "Content-Type: application/json");
-    /* headers = curl_slist_append(headers, "Content-Type: application/json"); */
+		char authorization[2048] = "Authorization: Bearer ";
+		strcat(authorization, AUTH);
+		headers = curl_slist_append(headers, authorization);
     headers = curl_slist_append(headers, "charset: utf-8");
     return headers;
 }
