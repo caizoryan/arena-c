@@ -1,3 +1,17 @@
+# <2025-16-05 Thu> POST:
+### Added POST Requests and Auth
+- added auth as a define in auth.h
+- added post requests (create block, update block)
+- will check which blocks need updating and then update them
+
+### Next up
+- add checks for errors and safely exit
+- clean up the post requests
+- Setup testing
+- Parse title from file
+- Download images, attachments and media
+- Add max requests per minute
+
 # <2025-10-05 Thu> Lots of stuff:
 ### Updates/log
 Added loads of new stuff.
