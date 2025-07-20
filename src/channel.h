@@ -9,6 +9,7 @@ typedef struct {
 	CURL *curl;
 	struct curl_slist *headers;
 	struct memory data;
+	char* body;
 } CurlRequest;
 
 typedef struct {

@@ -185,6 +185,7 @@ CurlRequest *construct_channel_request(char *slug){
     request->curl = curl;
     request->data = chunk;
     request->headers = headers;
+		request->body = NULL;
 
     if(curl) {
 	    // URL & Headers
@@ -221,6 +222,9 @@ CurlRequest *construct_new_block_request(char *channel_slug, char *content){
   root = cJSON_CreateObject();
 	cJSON_AddStringToObject(root, "content", content);
   json = cJSON_PrintUnformatted(root);
+	cJSON_Delete(root);
+
+	request->body = json;
 
 	if(curl) {
 		// URL & Headers
@@ -248,8 +252,6 @@ CurlRequest *construct_update_block_request(int id, char *content){
 	sprintf(id_str, "%d", id);
 	strcat(url, id_str);
 
-	printf("url: %s\n", url);
-
 	struct memory chunk = { 0 };
 	struct curl_slist *headers = json_headers();
 
@@ -264,6 +266,9 @@ CurlRequest *construct_update_block_request(int id, char *content){
   root = cJSON_CreateObject();
 	cJSON_AddStringToObject(root, "content", content);
   json = cJSON_PrintUnformatted(root);
+	cJSON_Delete(root);
+
+	request->body = json;
 
 	if(curl) {
 		// URL & Headers
@@ -272,7 +277,6 @@ CurlRequest *construct_update_block_request(int id, char *content){
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT"); /* !!! */
 
 		// body
-		printf("body: %s", json);
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json);
 		/* curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, -1L); */
 
@@ -289,6 +293,7 @@ void clean_channel_request(CurlRequest *req){
     curl_easy_cleanup(req->curl);
     curl_slist_free_all(req->headers);
     free(req->data.response);
+		if (req->body != NULL) free(req->body);
 }
 void clean_channel(Channel channel){
 		free(channel.slug);

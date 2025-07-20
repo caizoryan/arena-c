@@ -310,8 +310,8 @@ void check(int argc, char** argv, sqlite3 *db){
 	DIR *d;
   struct dirent *dir;
 
-	char* slugs = argv[2];
-	string_list list = process_slugs(slugs);
+	/* char* slugs = argv[2]; */
+	/* string_list list = process_slugs(slugs); */
 
   d = opendir(root_dir);
 	int ignore = 2;
@@ -341,8 +341,8 @@ void update(int argc, char** argv, sqlite3 *db){
 	DIR *d;
   struct dirent *dir;
 
-	char* slugs = argv[2];
-	string_list list = process_slugs(slugs);
+	/* char* slugs = argv[2]; */
+	/* string_list list = process_slugs(slugs); */
 
   d = opendir(root_dir);
 	int ignore = 2;
@@ -359,19 +359,24 @@ void update(int argc, char** argv, sqlite3 *db){
 				strcat(location, "/");
 				strcat(location, dir->d_name);
 
-				UpdateList list = get_channel_modified_blocks(db, location);
+				UpdateList block_list = get_channel_modified_blocks(db, location);
 				printf("TO UPDATE: \n");
-				for (int i = 0; i < list.len; i++){
-					printf("Block: %d\nContent: \n%s\n", list.blocks[i].id, list.blocks[i].content);
-					CurlRequest *req = construct_update_block_request(list.blocks[i].id, list.blocks[i].content);
+
+				for (int i = 0; i < block_list.len; i++){
+					printf("Block: %d\nContent: \n%s\n", block_list.blocks[i].id, block_list.blocks[i].content);
+
+					CurlRequest *req = construct_update_block_request(block_list.blocks[i].id, block_list.blocks[i].content);
 					int res = curl_easy_perform(req->curl);
+					clean_channel_request(req);
 
 					cJSON *data = cJSON_Parse(req->data.response);
-					printf("Update Response: %s\n", cJSON_Print(data));
+					cJSON_Delete(data);
+					free(block_list.blocks[i].content);
 					// then when success, fetch the block and update sqlite!
 				}
+
+				free(block_list.blocks);
 			}
-			/* else printf("%s\n", dir->d_name); */
     }
 
     closedir(d);
@@ -397,7 +402,7 @@ int main(int argc, char **argv) {
 		else if (!strcmp(cmd, "mount")) mount(argc, argv, db);
 		else if (!strcmp(cmd, "check")) check(argc, argv, db);
 		else if (!strcmp(cmd, "update")) update(argc, argv, db);
-		else if (!strcmp(cmd, "push")) printf("CMD is push");
+		else if (!strcmp(cmd, "push")) update(argc, argv, db);
 	}
 	else {
 		CurlRequest *req = construct_new_block_request("test-ejghk6g7dyc", "testing if this shit works");

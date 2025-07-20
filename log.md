@@ -5,6 +5,7 @@
 - will check which blocks need updating and then update them
 
 ### Next up
+- work on the cli experience
 - add checks for errors and safely exit
 - clean up the post requests
 - Setup testing
